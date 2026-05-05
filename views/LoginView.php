@@ -26,8 +26,10 @@
             <input type="text" id="username" name="username" required autocomplete="username"><br><br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required autocomplete="current-password"><br><br>
-            <input type="submit" value="Login">
+            <input type="hidden" name="action" value="login">
+            <button type="submit">Login</button>
         </form>
+        <p>Don't have an account? <a href="../controllers/AccountsController.php?page=register">Register here</a>.</p>
     <?php } ?>
 </body>
 
