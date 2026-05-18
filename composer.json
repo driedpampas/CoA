@@ -1,13 +1,12 @@
 {
-	"name": "project/app",
+	"name": "coa/app",
 	"description": "Vanilla PHP Project",
 	"type": "project",
 	"license": "proprietary",
+	"require": {},
 	"autoload": {
 		"psr-4": {
-			"Config\\": "config/",
 			"Models\\": "models/"
 		}
-	},
-	"require": {}
+	}
 }

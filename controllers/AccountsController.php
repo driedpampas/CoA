@@ -1,12 +1,12 @@
 <?php
-require_once '../config/db.php';
-require_once '../models/AccountsModel.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-$userModel = new Account($mysql);
+$userModel = new \Models\Account($mysql);
 
 $isLoggedIn = false;
 $username = "";

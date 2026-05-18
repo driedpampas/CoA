@@ -1,5 +1,7 @@
 <?php
 
+namespace Models;
+
 class Account
 {
     private $mysql;
