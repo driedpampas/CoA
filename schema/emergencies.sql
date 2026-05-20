@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS shelters (
     address         VARCHAR(500)        NOT NULL,
     latitude        DECIMAL(10, 7)      NOT NULL,
     longitude       DECIMAL(10, 7)      NOT NULL,
-    geom_point      POINT               NOT NULL SRID 4326,
+    geom_point      POINT               NOT NULL,
     capacity        INT UNSIGNED        NOT NULL DEFAULT 0,
     current_occupancy INT UNSIGNED      NOT NULL DEFAULT 0,
     status          ENUM('open', 'full', 'closed') NOT NULL DEFAULT 'open',
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS evacuation_routes (
     shelter_id      INT UNSIGNED        NOT NULL,
     from_latitude   DECIMAL(10, 7)      NOT NULL,
     from_longitude  DECIMAL(10, 7)      NOT NULL,
-    from_geom       POINT               NOT NULL SRID 4326,
-    route_geometry  LINESTRING           NOT NULL SRID 4326,
+    from_geom       POINT               NOT NULL,
+    route_geometry  LINESTRING          NOT NULL,
     distance_meters DOUBLE              DEFAULT NULL,
     estimated_minutes INT UNSIGNED      DEFAULT NULL,
     status          ENUM('active', 'blocked', 'closed') NOT NULL DEFAULT 'active',
@@ -52,22 +52,18 @@ CREATE TABLE IF NOT EXISTS evacuation_routes (
         ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ------------------------------------------------------------
--- Example: emergencies table placeholder (Developer 1 owns this)
--- Included here only as a reference for the CAP feed queries
--- ------------------------------------------------------------
--- CREATE TABLE IF NOT EXISTS emergency_events (
---     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
---     event_type      ENUM('earthquake', 'flood', 'fire', 'storm', 'other') NOT NULL,
---     title           VARCHAR(255) NOT NULL,
---     description     TEXT,
---     severity        ENUM('low', 'moderate', 'high', 'extreme') NOT NULL DEFAULT 'moderate',
---     latitude        DECIMAL(10, 7),
---     longitude       DECIMAL(10, 7),
---     status          ENUM('active', 'resolved') NOT NULL DEFAULT 'active',
---     started_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     resolved_at     TIMESTAMP NULL DEFAULT NULL,
---     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
---     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     PRIMARY KEY (id)
--- );
+
+CREATE TABLE IF NOT EXISTS emergency_events (
+id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+event_type      ENUM('earthquake', 'flood', 'fire', 'storm', 'other') NOT NULL,
+title           VARCHAR(255) NOT NULL,
+description     TEXT,
+severity        ENUM('low', 'moderate', 'high', 'extreme') NOT NULL DEFAULT 'moderate',
+latitude        DECIMAL(10, 7),
+longitude       DECIMAL(10, 7),
+status          ENUM('active', 'resolved') NOT NULL DEFAULT 'active',
+started_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+resolved_at     TIMESTAMP NULL DEFAULT NULL,
+created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (id));

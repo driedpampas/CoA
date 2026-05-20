@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         case "register": {
-            if (!isset($username) || !isset($password)) {
+            if (!isset($_POST["username"]) || (!isset($_POST["password"]))) {
                 header("Location: ../controllers/AccountsController.php?page=register&error=1");
                 exit;
             }
