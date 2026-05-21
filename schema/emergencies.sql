@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS emergency_events (
     created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 PRIMARY KEY (id));
+ALTER TABLE emergency_events ADD UNIQUE KEY unique_earthquake (event_type, started_at, latitude, longitude);
 
 CREATE TABLE IF NOT EXISTS auth (
     user VARCHAR(32) NOT NULL,
