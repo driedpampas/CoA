@@ -6,15 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COA - Panou Public</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="../public/dashboard.css">
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 
 <body>
     <header class="dashboard-header">
         <h1>COA Emergency Dashboard</h1>
         <nav>
-            <a href="../controllers/PublicController.php?page=dashboard">Dashboard</a>
-            <a href="../controllers/PublicController.php?page=cap-feed" target="_blank">CAP Feed</a>
+            <a href="index.php?page=dashboard">Dashboard</a>
+            <a href="index.php?page=cap-feed" target="_blank">CAP Feed</a>
         </nav>
     </header>
 
@@ -81,7 +81,7 @@
         var eventsData = <?php echo json_encode($events, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         var sheltersData = <?php echo json_encode($shelters, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
     </script>
-    <script src="../public/dashboard.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 
 </html>
