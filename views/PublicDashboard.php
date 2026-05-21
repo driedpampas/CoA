@@ -56,7 +56,6 @@
                     <h2>Nearby Shelters</h2>
                     <div class="location-controls">
                         <button id="locateBtn" class="btn">Gaseste adaposturi</button>
-                        <span id="locationStatus" class="status-text">Se detecteaza locatia...</span>
                     </div>
                     <div id="shelterList" class="shelter-list">
                         <?php foreach ($shelters as $shelter): ?>
@@ -88,6 +87,11 @@
 
             <div class="map-container">
                 <div id="map"></div>
+                <div id="locationBanner" class="location-banner location-banner--hidden">
+                    <span id="locationSpinner" class="location-spinner"></span>
+                    <span id="locationBannerText">Obtaining location...</span>
+                    <button class="location-banner-close" onclick="document.querySelector('#locationBanner').classList.add('location-banner--hidden')">&times;</button>
+                </div>
             </div>
         </div>
     </main>

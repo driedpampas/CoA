@@ -1,4 +1,4 @@
-var map = L.map("map").setView([44.4268, 26.1025], 12);
+var map = L.map("map").setView([47.1622, 27.5889], 13);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 	attribution:
@@ -68,6 +68,40 @@ sheltersData.forEach((shelter) => {
 var userMarker = null;
 var userAccuracyCircle = null;
 var routeLayers = [];
+var locationBannerEl = document.querySelector("#locationBanner");
+var locationBannerTextEl = document.querySelector("#locationBannerText");
+
+function showLocationBanner(text, isError) {
+	if (!locationBannerEl) return;
+	locationBannerTextEl.textContent = text;
+	locationBannerEl.classList.remove(
+		"location-banner--hidden",
+		"location-banner--error",
+		"location-banner--success",
+	);
+	locationBannerEl.classList.add(
+		isError ? "location-banner--error" : "location-banner--success",
+	);
+	var spinner = document.querySelector("#locationSpinner");
+	if (spinner) spinner.style.display = "none";
+}
+
+function hideLocationBanner() {
+	if (!locationBannerEl) return;
+	locationBannerEl.classList.add("location-banner--hidden");
+}
+
+function showLocationSpinner() {
+	if (!locationBannerEl) return;
+	locationBannerTextEl.textContent = "Obtaining location...";
+	locationBannerEl.classList.remove(
+		"location-banner--hidden",
+		"location-banner--error",
+		"location-banner--success",
+	);
+	var spinner = document.querySelector("#locationSpinner");
+	if (spinner) spinner.style.display = "";
+}
 
 var userLocationIcon = L.divIcon({
 	className: "custom-marker",
@@ -129,7 +163,9 @@ function fetchNearestShelters(lat, lng) {
 }
 
 function clearRoutes() {
-	routeLayers.forEach((layer) => { map.removeLayer(layer); });
+	routeLayers.forEach((layer) => {
+		map.removeLayer(layer);
+	});
 	routeLayers = [];
 }
 
@@ -185,9 +221,9 @@ function onLocationFound(position) {
 	var lat = position.coords.latitude;
 	var lng = position.coords.longitude;
 	var accuracy = position.coords.accuracy;
-	var statusEl = document.querySelector("#locationStatus");
 
-	statusEl.textContent = "Locatie gasita.";
+	showLocationBanner("Locatie gasita.", false);
+	setTimeout(hideLocationBanner, 3000);
 
 	updateUserMarker(lat, lng, accuracy);
 	fetchNearestShelters(lat, lng);
@@ -195,9 +231,10 @@ function onLocationFound(position) {
 }
 
 function onLocationError(error) {
-	var statusEl = document.querySelector("#locationStatus");
-	statusEl.textContent = `Nu s-a putut obtine locatia: ${error.message}`;
+	showLocationBanner(`Nu s-a putut obtine locatia: ${error.message}`, true);
 }
+
+showLocationSpinner();
 
 if (navigator.geolocation) {
 	navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError, {
@@ -210,17 +247,17 @@ if (navigator.geolocation) {
 		enableHighAccuracy: true,
 		maximumAge: 60000,
 	});
+} else {
+	showLocationBanner("Geolocation is not supported by this browser.", true);
 }
 
 document.querySelector("#locateBtn").addEventListener("click", () => {
-	var statusEl = document.querySelector("#locationStatus");
-
 	if (!navigator.geolocation) {
-		statusEl.textContent = "Geolocation not supported.";
+		showLocationBanner("Geolocation is not supported by this browser.", true);
 		return;
 	}
 
-	statusEl.textContent = "Se cauta locatia...";
+	showLocationSpinner();
 
 	navigator.geolocation.getCurrentPosition(
 		(position) => {
@@ -228,14 +265,16 @@ document.querySelector("#locateBtn").addEventListener("click", () => {
 			var lng = position.coords.longitude;
 			var accuracy = position.coords.accuracy;
 
-			statusEl.textContent = "Locatie gasita.";
+			showLocationBanner("Locatie gasita.", false);
+			setTimeout(hideLocationBanner, 3000);
+
 			updateUserMarker(lat, lng, accuracy);
 			map.setView([lat, lng], 14);
 			fetchNearestShelters(lat, lng);
 			fetchNearestRoutes(lat, lng);
 		},
 		(error) => {
-			statusEl.textContent = `Nu s-a putut obtine locatia: ${error.message}`;
+			showLocationBanner(`Nu s-a putut obtine locatia: ${error.message}`, true);
 		},
 		{ enableHighAccuracy: true, timeout: 10000 },
 	);
