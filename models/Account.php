@@ -13,11 +13,11 @@ class Account
 
     public function checkUserAndPassword($username, $password)
     {
-        if (!($stmt = $this->mysql->prepare("SELECT 1 FROM auth WHERE user = ? AND pass = ?"))) {
+        if (!($stmt = $this->mysql->prepare("SELECT pass FROM auth WHERE user = ?"))) {
             return false;
         }
 
-        if (!$stmt->bind_param('ss', $username, $password)) {
+        if (!$stmt->bind_param('s', $username)) {
             return false;
         }
 
@@ -29,7 +29,12 @@ class Account
             return false;
         }
 
-        return $result->num_rows > 0;
+        if ($result->num_rows === 0) {
+            return false;
+        }
+
+        $row = $result->fetch_assoc();
+        return password_verify($password, $row['pass']);
     }
 
     public function checkUserExists($username)
@@ -59,11 +64,17 @@ class Account
 
     public function createUser($username, $password, $email)
     {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        if ($hashedPassword === false) {
+            return [false, 'Eroare la hashing-ul parolei.'];
+        }
+
         if (!($stmt = $this->mysql->prepare("INSERT INTO auth (user, pass, email) VALUES (?, ?, ?)"))) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
-        if (!$stmt->bind_param('sss', $username, $password, $email)) {
+        if (!$stmt->bind_param('sss', $username, $hashedPassword, $email)) {
             return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
         }
 

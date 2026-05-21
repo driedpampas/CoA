@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS shelters (
     PRIMARY KEY (id),
     SPATIAL INDEX idx_shelters_geom (geom_point),
     INDEX idx_shelters_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 -- ------------------------------------------------------------
 -- Evacuation Routes: pre-defined paths from zones to shelters
@@ -50,26 +50,27 @@ CREATE TABLE IF NOT EXISTS evacuation_routes (
     SPATIAL INDEX idx_evac_route_geom (route_geometry),
     CONSTRAINT fk_evac_shelter FOREIGN KEY (shelter_id) REFERENCES shelters(id)
         ON UPDATE CASCADE ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+);
 
 
 CREATE TABLE IF NOT EXISTS emergency_events (
-id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
-event_type      ENUM('earthquake', 'flood', 'fire', 'storm', 'other') NOT NULL,
-title           VARCHAR(255) NOT NULL,
-description     TEXT,
-severity        ENUM('low', 'moderate', 'high', 'extreme') NOT NULL DEFAULT 'moderate',
-latitude        DECIMAL(10, 7),
-longitude       DECIMAL(10, 7),
-status          ENUM('active', 'resolved') NOT NULL DEFAULT 'active',
-started_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-resolved_at     TIMESTAMP NULL DEFAULT NULL,
-created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    event_type      ENUM('earthquake', 'flood', 'fire', 'storm', 'other') NOT NULL,
+    title           VARCHAR(255) NOT NULL,
+    description     TEXT,
+    severity        ENUM('low', 'moderate', 'high', 'extreme') NOT NULL DEFAULT 'moderate',
+    latitude        DECIMAL(10, 7),
+    longitude       DECIMAL(10, 7),
+    status          ENUM('active', 'resolved') NOT NULL DEFAULT 'active',
+    started_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resolved_at     TIMESTAMP NULL DEFAULT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 PRIMARY KEY (id));
 
 CREATE TABLE IF NOT EXISTS auth (
-    user VARCHAR(32),
-    pass VARCHAR(32),
-    email VARCHAR(255)
+    user VARCHAR(32) NOT NULL,
+    pass VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    PRIMARY KEY (user)
 );

@@ -17,7 +17,7 @@
 <?php if ($isLoggedIn) { ?>
     <form action="login" method="post">
         <h1>Login successful</h1>
-        <p style="margin-bottom: 20px;">You are now logged in as <strong><?php echo $username; ?></strong>.</p>
+        <p style="margin-bottom: 20px;">You are now logged in as <strong><?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?></strong>.</p>
         <input type="hidden" name="action" value="logout">
         <button type="submit" style="background-color: #e74c3c;">Logout</button> </form>
 <?php } else { ?>

@@ -41,12 +41,16 @@ switch ($page) {
         switch ($resource) {
             case 'events':
                 \Handlers\Events::handle($eventModel);
+                break;
             case 'shelters':
                 \Handlers\Shelters::handle($shelterModel, $action);
+                break;
             case 'auth':
                 \Handlers\Auth::handle($accountModel, $action);
+                break;
             default:
                 sendJsonResponse(['error' => 'Not found.'], 404);
+                break;
         }
     }
 

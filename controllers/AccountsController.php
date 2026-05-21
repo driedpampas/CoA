@@ -69,7 +69,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 header("Location: login?error=1");
                 exit;
             }
-            login($_POST["username"], $_POST["password"]);
+            $username = filter_var(trim($_POST["username"]), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            $password = $_POST["password"];
+            login($username, $password);
             break;
         }
 
@@ -80,25 +82,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit;
             }
 
-            $username = trim($_POST["username"]);
+            $username = trim(filter_var($_POST["username"], FILTER_SANITIZE_FULL_SPECIAL_CHARS));
             $password = $_POST["password"];
-            $email = trim($_POST["email"]);
+            $email = trim(filter_var($_POST["email"], FILTER_SANITIZE_EMAIL));
 
-            //Validating username length
             if (mb_strlen($username) < 3 || mb_strlen($username) > 30) {
                 $_SESSION["errorMessage"] = "Username must be between 3 and 30 characters.";
                 header("Location: register?error=1");
                 exit;
             }
 
-            //Validating passowrd length
             if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
                 $_SESSION["errorMessage"] = "Password must be between 3 and 30 characters.";
                 header("Location: register?error=1");
                 exit;
             }
 
-            //Validate email format
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $_SESSION["errorMessage"] = "Please provide a valid email address.";
                 header("Location: register?error=1");

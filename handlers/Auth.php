@@ -15,12 +15,16 @@ class Auth
         switch ($subAction) {
             case 'login':
                 self::login($accountModel);
+                break;
             case 'register':
                 self::register($accountModel);
+                break;
             case 'check-username':
                 self::checkUsername($accountModel);
+                break;
             default:
                 sendJsonResponse(['error' => 'Not found.'], 404);
+                break;
         }
     }
 
@@ -37,7 +41,7 @@ class Auth
             sendJsonResponse(['error' => 'Username and password are required.'], 400);
         }
 
-        $username = filter_var($input['username'], FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        $username = filter_var(trim($input['username']), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         $password = $input['password'];
 
         if ($accountModel->checkUserAndPassword($username, $password)) {

@@ -13,7 +13,7 @@
 <body>
 <?php if ($error): ?>
     <p class="error-message">
-        <?php echo $errorMessage ?: "Unknown registration error. Please try again."; ?>
+        <?php echo htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?: "Unknown registration error. Please try again."; ?>
     </p>
 <?php endif; ?>
 
