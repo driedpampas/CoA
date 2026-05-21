@@ -18,16 +18,18 @@
     <?php endif; ?>
 
     <h1>Register</h1>
-    <form action="../controllers/AccountsController.php" method="post">
+    <form action="index.php?page=register" method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required autocomplete="username"><br>
         <div id="usernameFeedback"></div><br>
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required autocomplete="current-password"><br><br>
+        <input type="password" id="password" name="password" required autocomplete="new-password"><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required autocomplete="email"><br><br>
         <input type="hidden" name="action" value="register">
         <button type="submit">Register</button>
     </form>
-    <p>Already have an account? <a href="../controllers/AccountsController.php?page=login">Login here</a>.</p>
+    <p>Already have an account? <a href="index.php?page=login">Login here</a>.</p>
 </body>
 
 </html>

@@ -13,27 +13,23 @@ class Account
 
     public function checkUserAndPassword($username, $password)
     {
-        if (!($stmt = $this->mysql->prepare("SELECT user, pass FROM auth WHERE user = ? AND pass = ?"))) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+        if (!($stmt = $this->mysql->prepare("SELECT 1 FROM auth WHERE user = ? AND pass = ?"))) {
+            return false;
         }
 
         if (!$stmt->bind_param('ss', $username, $password)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return false;
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return false;
         }
 
-        if (!($pass_result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+        if (!($result = $stmt->get_result())) {
+            return false;
         }
 
-        if ($pass_result->num_rows > 0) {
-            return [true, ''];
-        }
-
-        return [false, ''];
+        return $result->num_rows > 0;
     }
 
     public function checkUserExists($username)
@@ -61,13 +57,13 @@ class Account
         return [false, ''];
     }
 
-    public function createUser($username, $password)
+    public function createUser($username, $password, $email)
     {
-        if (!($stmt = $this->mysql->prepare("INSERT INTO auth (user, pass) VALUES (?, ?)"))) {
+        if (!($stmt = $this->mysql->prepare("INSERT INTO auth (user, pass, email) VALUES (?, ?, ?)"))) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
-        if (!$stmt->bind_param('ss', $username, $password)) {
+        if (!$stmt->bind_param('sss', $username, $password, $email)) {
             return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
         }
 

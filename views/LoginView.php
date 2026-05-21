@@ -16,13 +16,13 @@
     <?php if ($isLoggedIn) { ?>
         <h1>Login successful</h1>
         <p>You are now logged in as <?php echo $username; ?>.</p>
-        <form action="../controllers/AccountsController.php" method="post">
+        <form action="index.php?page=login" method="post">
             <input type="hidden" name="action" value="logout">
             <button type="submit">Logout</button>
         </form>
     <?php } else { ?>
         <h1>Login</h1>
-        <form action="../controllers/AccountsController.php" method="post">
+        <form action="index.php?page=login" method="post">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required autocomplete="username"><br><br>
             <label for="password">Password:</label>
@@ -30,7 +30,7 @@
             <input type="hidden" name="action" value="login">
             <button type="submit">Login</button>
         </form>
-        <p>Don't have an account? <a href="../controllers/AccountsController.php?page=register">Register here</a>.</p>
+        <p>Don't have an account? <a href="index.php?page=register">Register here</a>.</p>
     <?php } ?>
 </body>
 
