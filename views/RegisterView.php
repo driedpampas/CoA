@@ -1,7 +1,3 @@
-<?php $error = $error ?? false;
-$errorMessage = $errorMessage ?? '';
-$isLoggedIn = $isLoggedIn ?? false;
-$username = $username ?? ''; ?>
 <!DOCTYPE html>
 <html lang="en">
 

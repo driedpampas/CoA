@@ -30,6 +30,9 @@ switch ($page) {
         [$ok, $shelters] = $shelterModel->getAll();
         $shelters = $ok ? $shelters : [];
 
+        $isLoggedIn = !empty($_SESSION["isLoggedIn"]);
+        $username = $_SESSION["username"] ?? "";
+
         include __DIR__ . '/../views/PublicDashboard.php';
         break;
     }

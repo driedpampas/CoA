@@ -15,11 +15,8 @@
         <nav>
             <a href="dashboard">Dashboard</a>
             <a href="cap-feed" target="_blank">CAP Feed</a>
-            <?php if (session_status() !== PHP_SESSION_ACTIVE) {
-                session_start();
-            } ?>
-            <?php if (!empty($_SESSION["isLoggedIn"])): ?>
-                <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($_SESSION["username"]); ?></a>
+            <?php if ($isLoggedIn): ?>
+                <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($username); ?></a>
             <?php else: ?>
                 <a href="login">Login</a>
             <?php endif; ?>
