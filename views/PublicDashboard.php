@@ -4,18 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COA - Panou Public</title>
+    <title>Dashboard</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="dashboard.css">
 </head>
 
 <body>
     <header class="dashboard-header">
-        <h1>COA Emergency Dashboard</h1>
+        <h1>Dashboard</h1>
         <nav>
             <a href="dashboard">Dashboard</a>
             <a href="cap-feed" target="_blank">CAP Feed</a>
-            <?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); } ?>
+            <?php if (session_status() !== PHP_SESSION_ACTIVE) {
+                session_start();
+            } ?>
             <?php if (!empty($_SESSION["isLoggedIn"])): ?>
                 <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($_SESSION["username"]); ?></a>
             <?php else: ?>
@@ -45,7 +47,8 @@
                                         <?php echo htmlspecialchars($event['severity']); ?>
                                     </span>
                                     <small><?php echo htmlspecialchars($event['started_at']); ?></small>
-                                    <p><?php echo htmlspecialchars(mb_strimwidth($event['description'] ?? '', 0, 100, '...')); ?></p>
+                                    <p><?php echo htmlspecialchars(mb_strimwidth($event['description'] ?? '', 0, 100, '...')); ?>
+                                    </p>
                                 </li>
                             <?php endforeach; ?>
                         </ul>
@@ -55,21 +58,21 @@
                 <section class="panel">
                     <h2>Nearby Shelters</h2>
                     <div class="location-controls">
-                        <button id="locateBtn" class="btn">Find nearest shelters</button>
-                        <span id="locationStatus" class="status-text"></span>
+                        <button id="locateBtn" class="btn">Gaseste adaposturi</button>
+                        <span id="locationStatus" class="status-text">Se detecteaza locatia...</span>
                     </div>
                     <div id="shelterList" class="shelter-list">
                         <?php foreach ($shelters as $shelter): ?>
-                            <div class="shelter-item"
-                                 data-lat="<?php echo htmlspecialchars($shelter['latitude']); ?>"
-                                 data-lng="<?php echo htmlspecialchars($shelter['longitude']); ?>"
-                                 data-id="<?php echo htmlspecialchars($shelter['id']); ?>">
+                            <div class="shelter-item" data-lat="<?php echo htmlspecialchars($shelter['latitude']); ?>"
+                                data-lng="<?php echo htmlspecialchars($shelter['longitude']); ?>"
+                                data-id="<?php echo htmlspecialchars($shelter['id']); ?>">
                                 <strong><?php echo htmlspecialchars($shelter['name']); ?></strong>
                                 <span class="badge badge-status-<?php echo htmlspecialchars($shelter['status']); ?>">
                                     <?php echo htmlspecialchars($shelter['status']); ?>
                                 </span>
                                 <small><?php echo htmlspecialchars($shelter['address']); ?></small>
-                                <small>Capacity: <?php echo htmlspecialchars($shelter['current_occupancy'] . ' / ' . $shelter['capacity']); ?></small>
+                                <small>Capacity:
+                                    <?php echo htmlspecialchars($shelter['current_occupancy'] . ' / ' . $shelter['capacity']); ?></small>
                             </div>
                         <?php endforeach; ?>
                     </div>

@@ -8,7 +8,7 @@ class Shelters
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             header('Allow: GET');
-            sendJsonResponse(['error' => 'Method not allowed.'], 405);
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
         }
 
         if ($action === 'nearest') {
@@ -16,24 +16,24 @@ class Shelters
             $lng = filter_input(INPUT_GET, 'lng', FILTER_VALIDATE_FLOAT);
 
             if ($lat === false || $lng === false || $lat === null || $lng === null) {
-                sendJsonResponse(['error' => 'Invalid or missing lat/lng parameters.'], 400);
+                \sendJsonResponse(['error' => 'Invalid or missing lat/lng parameters.'], 400);
             }
 
             [$ok, $shelters] = $shelterModel->findNearest($lat, $lng, 5);
-            sendJsonResponse($ok ? $shelters : []);
+            \sendJsonResponse($ok ? $shelters : []);
         }
 
         if ($action !== '' && ctype_digit($action)) {
             [$ok, $shelter] = $shelterModel->findById((int) $action);
 
             if (!$ok) {
-                sendJsonResponse(['error' => $shelter], 404);
+                \sendJsonResponse(['error' => $shelter], 404);
             }
 
-            sendJsonResponse($shelter);
+            \sendJsonResponse($shelter);
         }
 
         [$ok, $shelters] = $shelterModel->getAll();
-        sendJsonResponse($ok ? $shelters : []);
+        \sendJsonResponse($ok ? $shelters : []);
     }
 }

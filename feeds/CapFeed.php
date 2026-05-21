@@ -18,21 +18,21 @@ $doc->appendChild($alerts);
 
 foreach ($events as $event) {
     $identifier = 'emergency-' . $event['id'] . '@' . date('Y-m-d\TH:i:s', strtotime($event['started_at']));
-    $sent       = gmdate('c');
-    $effective  = gmdate('c', strtotime($event['started_at']));
-    $expires    = gmdate('c', strtotime($event['started_at'] . ' +24 hours'));
+    $sent = gmdate('c');
+    $effective = gmdate('c', strtotime($event['started_at']));
+    $expires = gmdate('c', strtotime($event['started_at'] . ' +24 hours'));
 
     $severityMap = [
-        'minor'    => 'Minor',
+        'minor' => 'Minor',
         'moderate' => 'Moderate',
-        'severe'   => 'Severe',
-        'extreme'  => 'Extreme',
+        'severe' => 'Severe',
+        'extreme' => 'Extreme',
     ];
     $urgencyMap = [
-        'low'      => 'Expected',
+        'low' => 'Expected',
         'moderate' => 'Expected',
-        'high'     => 'Immediate',
-        'extreme'  => 'Immediate',
+        'high' => 'Immediate',
+        'extreme' => 'Immediate',
     ];
 
     $alert = $doc->createElement('alert');

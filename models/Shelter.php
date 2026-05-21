@@ -13,10 +13,12 @@ class Shelter
 
     public function getAll()
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
              FROM shelters WHERE status != 'closed'"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
@@ -38,10 +40,12 @@ class Shelter
 
     public function findById($id)
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
              FROM shelters WHERE id = ?"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
@@ -66,14 +70,16 @@ class Shelter
 
     public function findNearest($latitude, $longitude, $limit = 5)
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
                     ST_Distance_Sphere(geom_point, ST_GeomFromText(?, 4326)) AS distance_meters
              FROM shelters
              WHERE status = 'open'
              ORDER BY distance_meters ASC
              LIMIT ?"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
@@ -102,14 +108,16 @@ class Shelter
 
     public function findWithinRadius($latitude, $longitude, $radiusMeters = 10000)
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
                     ST_Distance_Sphere(geom_point, ST_GeomFromText(?, 4326)) AS distance_meters
              FROM shelters
              WHERE status = 'open'
                AND ST_Distance_Sphere(geom_point, ST_GeomFromText(?, 4326)) <= ?
              ORDER BY distance_meters ASC"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 

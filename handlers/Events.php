@@ -8,10 +8,10 @@ class Events
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             header('Allow: GET');
-            sendJsonResponse(['error' => 'Method not allowed.'], 405);
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
         }
 
         [$ok, $events] = $eventModel->getActive();
-        sendJsonResponse($ok ? $events : []);
+        \sendJsonResponse($ok ? $events : []);
     }
 }

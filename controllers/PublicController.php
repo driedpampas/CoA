@@ -30,7 +30,7 @@ switch ($page) {
         [$ok, $shelters] = $shelterModel->getAll();
         $shelters = $ok ? $shelters : [];
 
-        include '../views/PublicDashboard.php';
+        include __DIR__ . '/../views/PublicDashboard.php';
         break;
     }
 
@@ -52,6 +52,7 @@ switch ($page) {
                 sendJsonResponse(['error' => 'Not found.'], 404);
                 break;
         }
+        break;
     }
 
     case 'cap-feed': {

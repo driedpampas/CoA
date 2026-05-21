@@ -13,12 +13,14 @@ class EvacuationRoute
 
     public function getByShelterId($shelterId)
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, name, shelter_id, from_latitude, from_longitude, distance_meters, estimated_minutes, status, notes
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, name, shelter_id, from_latitude, from_longitude, distance_meters, estimated_minutes, status, notes
              FROM evacuation_routes
              WHERE shelter_id = ? AND status = 'active'
              ORDER BY distance_meters ASC"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
@@ -44,8 +46,9 @@ class EvacuationRoute
 
     public function findNearestRoute($latitude, $longitude, $limit = 3)
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT er.id, er.name, er.shelter_id, er.from_latitude, er.from_longitude,
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT er.id, er.name, er.shelter_id, er.from_latitude, er.from_longitude,
                     er.distance_meters, er.estimated_minutes, er.status,
                     s.name AS shelter_name,
                     ST_Distance_Sphere(er.from_geom, ST_GeomFromText(?, 4326)) AS distance_from_point
@@ -54,7 +57,8 @@ class EvacuationRoute
              WHERE er.status = 'active'
              ORDER BY distance_from_point ASC
              LIMIT ?"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 

@@ -10,7 +10,7 @@ usernameInput.addEventListener("blur", function () {
 	fetch(`api/auth/check-username?username=${encodeURIComponent(username)}`, {
 		method: "GET",
 		headers: {
-			"Accept": "application/json",
+			Accept: "application/json",
 		},
 	})
 		.then((response) => response.json())

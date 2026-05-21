@@ -13,12 +13,14 @@ class Event
 
     public function getActive()
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, event_type, title, description, severity, latitude, longitude, status, started_at
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, event_type, title, description, severity, latitude, longitude, status, started_at
              FROM emergency_events
              WHERE status = 'active'
              ORDER BY started_at DESC"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 
@@ -40,13 +42,15 @@ class Event
 
     public function getActiveForCapFeed()
     {
-        if (!($stmt = $this->mysql->prepare(
-            "SELECT id, event_type, title, description, severity, latitude, longitude, started_at
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, event_type, title, description, severity, latitude, longitude, started_at
              FROM emergency_events
              WHERE status = 'active'
                AND severity IN ('high', 'extreme')
              ORDER BY started_at DESC"
-        ))) {
+            ))
+        ) {
             return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
         }
 

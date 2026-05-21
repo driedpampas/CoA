@@ -132,24 +132,24 @@ switch ($route ?? "") {
     case "login": {
         $isLoggedIn = $_SESSION["isLoggedIn"] ?? false;
         $username = $_SESSION["username"] ?? "";
-        include '../views/LoginView.php';
+        include __DIR__ . '/../views/LoginView.php';
         break;
     }
 
     case "register": {
-        include '../views/RegisterView.php';
+        include __DIR__ . '/../views/RegisterView.php';
         break;
     }
 
     case "error": {
-        include '../views/Error.php';
+        include __DIR__ . '/../views/Error.php';
         break;
     }
 
     default: {
         $isLoggedIn = $_SESSION["isLoggedIn"] ?? false;
         $username = $_SESSION["username"] ?? "";
-        include '../views/LoginView.php';
+        include __DIR__ . '/../views/LoginView.php';
         break;
     }
 }
