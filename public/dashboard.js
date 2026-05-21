@@ -116,7 +116,7 @@ function updateUserMarker(lat, lng, accuracy) {
 	} else {
 		userMarker = L.marker([lat, lng], { icon: userLocationIcon })
 			.addTo(map)
-			.bindPopup("Locatia ta");
+			.bindPopup("Your location");
 	}
 
 	if (userAccuracyCircle) {
@@ -143,7 +143,7 @@ function fetchNearestShelters(lat, lng) {
 
 			if (nearestShelters.length === 0) {
 				listEl.innerHTML =
-					'<p class="empty-state">Nu s-au gasit adaposturi in zona.</p>';
+					'<p class="empty-state">No shelters found in the area.</p>';
 				return;
 			}
 
@@ -156,7 +156,7 @@ function fetchNearestShelters(lat, lng) {
 				div.className = "shelter-item";
 				div.setAttribute("data-lat", s.latitude);
 				div.setAttribute("data-lng", s.longitude);
-				div.innerHTML = `<strong>${s.name}</strong><span class="badge badge-status-${s.status}">${s.status}</span><span class="badge badge-type-${s.shelter_type}">${s.shelter_type}</span><small>${s.address}</small><small>Distanța: ${dist}</small><small>Capacitate: ${s.current_occupancy} / ${s.capacity}</small>`;
+				div.innerHTML = `<strong>${s.name}</strong><span class="badge badge-status-${s.status}">${s.status}</span><span class="badge badge-type-${s.shelter_type}">${s.shelter_type}</span><small>${s.address}</small><small>Distance: ${dist}</small><small>Capacity: ${s.current_occupancy} / ${s.capacity}</small>`;
 				listEl.appendChild(div);
 			});
 		});
@@ -186,7 +186,7 @@ function fetchNearestRoutes(lat, lng) {
 				}).addTo(map);
 
 				polyline.bindPopup(
-					`<strong>${route.name}</strong><br>Ruta catre: ${route.shelter_name}<br>Durata: ~${route.estimated_minutes} min<br>Distanta: ${route.distance_meters} m<br>Status: <span style="color:${route.status === "blocked" ? "#d32f2f" : "#4caf50"};">${route.status}</span>`,
+					`<strong>${route.name}</strong><br>Route to: ${route.shelter_name}<br>Duration: ~${route.estimated_minutes} min<br>Distance: ${route.distance_meters} m<br>Status: <span style="color:${route.status === "blocked" ? "#d32f2f" : "#4caf50"};">${route.status}</span>`,
 				);
 
 				routeLayers.push(polyline);
@@ -198,7 +198,7 @@ function fetchNearestRoutes(lat, lng) {
 
 				if (routes.length === 0) {
 					routeListEl.innerHTML =
-						'<p class="empty-state">Nu s-au gasit rute de evacuare in zona.</p>';
+						'<p class="empty-state">No evacuation routes found in the area.</p>';
 					return;
 				}
 
@@ -210,7 +210,7 @@ function fetchNearestRoutes(lat, lng) {
 					var div = document.createElement("div");
 					div.className = "route-item";
 					div.setAttribute("data-route-id", route.id);
-					div.innerHTML = `<strong>${route.name}</strong><span class="badge badge-status-${route.status}">${route.status}</span><small>Catre: ${route.shelter_name}</small><small>Durata: ~${route.estimated_minutes} min | ${dist}</small>`;
+					div.innerHTML = `<strong>${route.name}</strong><span class="badge badge-status-${route.status}">${route.status}</span><small>To: ${route.shelter_name}</small><small>Duration: ~${route.estimated_minutes} min | ${dist}</small>`;
 					routeListEl.appendChild(div);
 				});
 			}
@@ -222,7 +222,7 @@ function onLocationFound(position) {
 	var lng = position.coords.longitude;
 	var accuracy = position.coords.accuracy;
 
-	showLocationBanner("Locatie gasita.", false);
+	showLocationBanner("Location found.", false);
 	setTimeout(hideLocationBanner, 3000);
 
 	updateUserMarker(lat, lng, accuracy);
@@ -231,7 +231,7 @@ function onLocationFound(position) {
 }
 
 function onLocationError(error) {
-	showLocationBanner(`Nu s-a putut obtine locatia: ${error.message}`, true);
+	showLocationBanner(`Could not obtain location: ${error.message}`, true);
 }
 
 showLocationSpinner();
@@ -265,7 +265,7 @@ document.querySelector("#locateBtn").addEventListener("click", () => {
 			var lng = position.coords.longitude;
 			var accuracy = position.coords.accuracy;
 
-			showLocationBanner("Locatie gasita.", false);
+			showLocationBanner("Location found.", false);
 			setTimeout(hideLocationBanner, 3000);
 
 			updateUserMarker(lat, lng, accuracy);
@@ -274,7 +274,7 @@ document.querySelector("#locateBtn").addEventListener("click", () => {
 			fetchNearestRoutes(lat, lng);
 		},
 		(error) => {
-			showLocationBanner(`Nu s-a putut obtine locatia: ${error.message}`, true);
+			showLocationBanner(`Could not obtain location: ${error.message}`, true);
 		},
 		{ enableHighAccuracy: true, timeout: 10000 },
 	);

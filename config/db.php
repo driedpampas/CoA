@@ -13,7 +13,7 @@ $mysql = new mysqli(
 );
 
 if (mysqli_connect_errno()) {
-    die('Conexiunea a esuat...');
+    die('Connection failed...');
 }
 
 $result = $mysql->query("SHOW TABLES");

@@ -40,19 +40,19 @@ class Account
     public function checkUserExists($username)
     {
         if (!($stmt = $this->mysql->prepare("SELECT user FROM auth WHERE user = ?"))) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->bind_param('s', $username)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($pass_result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         if ($pass_result->num_rows > 0) {
@@ -67,19 +67,19 @@ class Account
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         if ($hashedPassword === false) {
-            return [false, 'Eroare la hashing-ul parolei.'];
+            return [false, 'Error hashing password.'];
         }
 
         if (!($stmt = $this->mysql->prepare("INSERT INTO auth (user, pass, email) VALUES (?, ?, ?)"))) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->bind_param('sss', $username, $hashedPassword, $email)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         return [true, 'User created successfully.'];

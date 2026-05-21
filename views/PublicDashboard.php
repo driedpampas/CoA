@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -55,7 +55,7 @@
                 <section class="panel">
                     <h2>Nearby Shelters</h2>
                     <div class="location-controls">
-                        <button id="locateBtn" class="btn">Gaseste adaposturi</button>
+                        <button id="locateBtn" class="btn">Find shelters</button>
                     </div>
                     <div id="shelterList" class="shelter-list">
                         <?php foreach ($shelters as $shelter): ?>
@@ -80,7 +80,7 @@
                 <section class="panel">
                     <h2>Evacuation Routes</h2>
                     <div id="routeList" class="route-list">
-                        <p class="empty-state">Detecteaza-ti locatia pentru a vedea rutele de evacuare.</p>
+                        <p class="empty-state">Detect your location to see evacuation routes.</p>
                     </div>
                 </section>
             </div>
@@ -90,7 +90,8 @@
                 <div id="locationBanner" class="location-banner location-banner--hidden">
                     <span id="locationSpinner" class="location-spinner"></span>
                     <span id="locationBannerText">Obtaining location...</span>
-                    <button class="location-banner-close" onclick="document.querySelector('#locationBanner').classList.add('location-banner--hidden')">&times;</button>
+                    <button class="location-banner-close"
+                        onclick="document.querySelector('#locationBanner').classList.add('location-banner--hidden')">&times;</button>
                 </div>
             </div>
         </div>

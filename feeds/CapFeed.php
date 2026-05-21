@@ -45,7 +45,7 @@ foreach ($events as $event) {
     $alert->appendChild($doc->createElement('scope', 'Public'));
 
     $info = $doc->createElement('info');
-    $info->appendChild($doc->createElement('language', 'ro-RO'));
+    $info->appendChild($doc->createElement('language', 'en-US'));
     $info->appendChild($doc->createElement('category', 'Geo'));
     $info->appendChild($doc->createElement('event', htmlspecialchars($event['event_type'])));
     $info->appendChild($doc->createElement('urgency', $urgencyMap[$event['severity']] ?? 'Unknown'));

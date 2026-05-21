@@ -19,15 +19,15 @@ class Shelter
              FROM shelters WHERE status != 'closed'"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $shelters = [];
@@ -46,23 +46,23 @@ class Shelter
              FROM shelters WHERE id = ?"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->bind_param('i', $id)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         if ($result->num_rows === 0) {
-            return [false, 'Adapostul nu a fost gasit.'];
+            return [false, 'Shelter not found.'];
         }
 
         return [true, $result->fetch_assoc()];
@@ -80,21 +80,21 @@ class Shelter
              LIMIT ?"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         $point = "POINT($longitude $latitude)";
 
         if (!$stmt->bind_param('si', $point, $limit)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $shelters = [];
@@ -118,21 +118,21 @@ class Shelter
              ORDER BY distance_meters ASC"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         $point = "POINT($longitude $latitude)";
 
         if (!$stmt->bind_param('sid', $point, $point, $radiusMeters)) {
-            return [false, 'Eroare la legarea parametrilor: ' . $this->mysql->error];
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $shelters = [];

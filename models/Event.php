@@ -21,15 +21,15 @@ class Event
              ORDER BY started_at DESC"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $events = [];
@@ -51,15 +51,15 @@ class Event
              ORDER BY started_at DESC"
             ))
         ) {
-            return [false, 'Eroare la pregatirea interogarii: ' . $this->mysql->error];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogarii: ' . $this->mysql->error];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la obtinerea rezultatului: ' . $this->mysql->error];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $events = [];
