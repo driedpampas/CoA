@@ -1,12 +1,13 @@
--- ============================================================
--- Emergency Management Schema
--- Tables: shelters, evacuation_routes
--- Assumes Developer 1 owns: emergency_events, emergency_alerts
--- ============================================================
+SET FOREIGN_KEY_CHECKS = 0; 
 
--- ------------------------------------------------------------
+DROP TABLE IF EXISTS shelters;
+DROP TABLE IF EXISTS evacuation_routes;
+DROP TABLE IF EXISTS emergency_events;
+DROP TABLE IF EXISTS auth;
+
+SET FOREIGN_KEY_CHECKS = 1; 
+
 -- Shelters: designated safe locations for civilian evacuation
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS shelters (
     id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
     name            VARCHAR(255)        NOT NULL,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS shelters (
     geom_point      POINT               NOT NULL,
     capacity        INT UNSIGNED        NOT NULL DEFAULT 0,
     current_occupancy INT UNSIGNED      NOT NULL DEFAULT 0,
+    shelter_type    ENUM('stadium', 'school', 'military', 'community', 'other') NOT NULL DEFAULT 'community',
     status          ENUM('open', 'full', 'closed') NOT NULL DEFAULT 'open',
     contact_phone   VARCHAR(30)         DEFAULT NULL,
     notes           TEXT                DEFAULT NULL,
@@ -26,9 +28,7 @@ CREATE TABLE IF NOT EXISTS shelters (
     INDEX idx_shelters_status (status)
 );
 
--- ------------------------------------------------------------
 -- Evacuation Routes: pre-defined paths from zones to shelters
--- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS evacuation_routes (
     id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
     name            VARCHAR(255)        NOT NULL,
@@ -51,7 +51,6 @@ CREATE TABLE IF NOT EXISTS evacuation_routes (
     CONSTRAINT fk_evac_shelter FOREIGN KEY (shelter_id) REFERENCES shelters(id)
         ON UPDATE CASCADE ON DELETE RESTRICT
 );
-
 
 CREATE TABLE IF NOT EXISTS emergency_events (
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT,

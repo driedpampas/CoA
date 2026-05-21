@@ -48,6 +48,9 @@ switch ($page) {
             case 'shelters':
                 \Handlers\Shelters::handle($shelterModel, $action);
                 break;
+            case 'routes':
+                \Handlers\Routes::handle($routeModel, $action);
+                break;
             case 'auth':
                 \Handlers\Auth::handle($accountModel, $action);
                 break;

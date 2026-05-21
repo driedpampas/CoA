@@ -15,7 +15,7 @@ class Shelter
     {
         if (
             !($stmt = $this->mysql->prepare(
-                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, shelter_type, status, contact_phone, notes
              FROM shelters WHERE status != 'closed'"
             ))
         ) {
@@ -42,7 +42,7 @@ class Shelter
     {
         if (
             !($stmt = $this->mysql->prepare(
-                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone, notes
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, shelter_type, status, contact_phone, notes
              FROM shelters WHERE id = ?"
             ))
         ) {
@@ -72,7 +72,7 @@ class Shelter
     {
         if (
             !($stmt = $this->mysql->prepare(
-                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, shelter_type, status, contact_phone,
                     ST_Distance_Sphere(geom_point, ST_GeomFromText(?, 4326)) AS distance_meters
              FROM shelters
              WHERE status = 'open'
@@ -110,7 +110,7 @@ class Shelter
     {
         if (
             !($stmt = $this->mysql->prepare(
-                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, status, contact_phone,
+                "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, shelter_type, status, contact_phone,
                     ST_Distance_Sphere(geom_point, ST_GeomFromText(?, 4326)) AS distance_meters
              FROM shelters
              WHERE status = 'open'

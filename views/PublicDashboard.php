@@ -67,11 +67,21 @@
                                 <span class="badge badge-status-<?php echo htmlspecialchars($shelter['status']); ?>">
                                     <?php echo htmlspecialchars($shelter['status']); ?>
                                 </span>
+                                <span class="badge badge-type-<?php echo htmlspecialchars($shelter['shelter_type']); ?>">
+                                    <?php echo htmlspecialchars($shelter['shelter_type']); ?>
+                                </span>
                                 <small><?php echo htmlspecialchars($shelter['address']); ?></small>
                                 <small>Capacity:
                                     <?php echo htmlspecialchars($shelter['current_occupancy'] . ' / ' . $shelter['capacity']); ?></small>
                             </div>
                         <?php endforeach; ?>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Evacuation Routes</h2>
+                    <div id="routeList" class="route-list">
+                        <p class="empty-state">Detecteaza-ti locatia pentru a vedea rutele de evacuare.</p>
                     </div>
                 </section>
             </div>

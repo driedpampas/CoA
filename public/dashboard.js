@@ -20,8 +20,7 @@ function getMarkerColor(eventType) {
 function getMarkerIcon(color) {
 	return L.divIcon({
 		className: "custom-marker",
-		html:
-			`<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>`,
+		html: `<div style="background:${color};width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>`,
 		iconSize: [14, 14],
 		iconAnchor: [7, 7],
 	});
@@ -60,7 +59,7 @@ sheltersData.forEach((shelter) => {
 	}).addTo(map);
 
 	marker.bindPopup(
-		`<strong>${shelter.name}</strong><br><span style="color:#4caf50;font-weight:600;">SHELTER</span><br>${shelter.address}<br>Capacity: ${shelter.current_occupancy} / ${shelter.capacity}<br>Status: ${shelter.status}${shelter.contact_phone ? `<br>Phone: ${shelter.contact_phone}` : ""}`,
+		`<strong>${shelter.name}</strong><br><span style="color:#4caf50;font-weight:600;">SHELTER</span> <span style="font-size:11px;color:#666;">${shelter.shelter_type}</span><br>${shelter.address}<br>Capacity: ${shelter.current_occupancy} / ${shelter.capacity}<br>Status: ${shelter.status}${shelter.contact_phone ? `<br>Phone: ${shelter.contact_phone}` : ""}`,
 	);
 
 	shelterMarkers.push(marker);
@@ -68,6 +67,7 @@ sheltersData.forEach((shelter) => {
 
 var userMarker = null;
 var userAccuracyCircle = null;
+var routeLayers = [];
 
 var userLocationIcon = L.divIcon({
 	className: "custom-marker",
@@ -122,10 +122,62 @@ function fetchNearestShelters(lat, lng) {
 				div.className = "shelter-item";
 				div.setAttribute("data-lat", s.latitude);
 				div.setAttribute("data-lng", s.longitude);
-				div.innerHTML =
-					`<strong>${s.name}</strong><span class="badge badge-status-${s.status}">${s.status}</span><small>${s.address}</small><small>Distanța: ${dist}</small><small>Capacitate: ${s.current_occupancy} / ${s.capacity}</small>`;
+				div.innerHTML = `<strong>${s.name}</strong><span class="badge badge-status-${s.status}">${s.status}</span><span class="badge badge-type-${s.shelter_type}">${s.shelter_type}</span><small>${s.address}</small><small>Distanța: ${dist}</small><small>Capacitate: ${s.current_occupancy} / ${s.capacity}</small>`;
 				listEl.appendChild(div);
 			});
+		});
+}
+
+function clearRoutes() {
+	routeLayers.forEach((layer) => { map.removeLayer(layer); });
+	routeLayers = [];
+}
+
+function fetchNearestRoutes(lat, lng) {
+	fetch(`api/routes/nearest?lat=${lat}&lng=${lng}`)
+		.then((response) => response.json())
+		.then((routes) => {
+			clearRoutes();
+
+			routes.forEach((route) => {
+				if (!route.route_geometry || route.route_geometry.length === 0) return;
+
+				var polyline = L.polyline(route.route_geometry, {
+					color: route.status === "blocked" ? "#d32f2f" : "#4caf50",
+					weight: 4,
+					opacity: 0.8,
+					dashArray: route.status === "blocked" ? "8, 8" : null,
+				}).addTo(map);
+
+				polyline.bindPopup(
+					`<strong>${route.name}</strong><br>Ruta catre: ${route.shelter_name}<br>Durata: ~${route.estimated_minutes} min<br>Distanta: ${route.distance_meters} m<br>Status: <span style="color:${route.status === "blocked" ? "#d32f2f" : "#4caf50"};">${route.status}</span>`,
+				);
+
+				routeLayers.push(polyline);
+			});
+
+			var routeListEl = document.querySelector("#routeList");
+			if (routeListEl) {
+				routeListEl.innerHTML = "";
+
+				if (routes.length === 0) {
+					routeListEl.innerHTML =
+						'<p class="empty-state">Nu s-au gasit rute de evacuare in zona.</p>';
+					return;
+				}
+
+				routes.forEach((route) => {
+					var dist =
+						route.distance_from_point < 1000
+							? `${route.distance_from_point} m`
+							: `${(route.distance_from_point / 1000).toFixed(1)} km`;
+					var div = document.createElement("div");
+					div.className = "route-item";
+					div.setAttribute("data-route-id", route.id);
+					div.innerHTML = `<strong>${route.name}</strong><span class="badge badge-status-${route.status}">${route.status}</span><small>Catre: ${route.shelter_name}</small><small>Durata: ~${route.estimated_minutes} min | ${dist}</small>`;
+					routeListEl.appendChild(div);
+				});
+			}
 		});
 }
 
@@ -139,6 +191,7 @@ function onLocationFound(position) {
 
 	updateUserMarker(lat, lng, accuracy);
 	fetchNearestShelters(lat, lng);
+	fetchNearestRoutes(lat, lng);
 }
 
 function onLocationError(error) {
@@ -153,11 +206,10 @@ if (navigator.geolocation) {
 		maximumAge: 300000,
 	});
 
-	navigator.geolocation.watchPosition(
-		onLocationFound,
-		() => {},
-		{ enableHighAccuracy: true, maximumAge: 60000 },
-	);
+	navigator.geolocation.watchPosition(onLocationFound, () => {}, {
+		enableHighAccuracy: true,
+		maximumAge: 60000,
+	});
 }
 
 document.querySelector("#locateBtn").addEventListener("click", () => {
@@ -180,6 +232,7 @@ document.querySelector("#locateBtn").addEventListener("click", () => {
 			updateUserMarker(lat, lng, accuracy);
 			map.setView([lat, lng], 14);
 			fetchNearestShelters(lat, lng);
+			fetchNearestRoutes(lat, lng);
 		},
 		(error) => {
 			statusEl.textContent = `Nu s-a putut obtine locatia: ${error.message}`;
