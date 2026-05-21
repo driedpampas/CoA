@@ -87,6 +87,19 @@
 
             <div class="map-container">
                 <div id="map"></div>
+                <div id="layerControls" class="layer-controls">
+                    <strong>Layers</strong>
+                    <label><input type="checkbox" id="toggleEvents" checked> Events</label>
+                    <label><input type="checkbox" id="toggleShelters" checked> Shelters</label>
+                    <label><input type="checkbox" id="toggleUser" checked> My Location</label>
+                    <label><input type="checkbox" id="toggleRoutes" checked> Routes</label>
+                </div>
+                <button id="centerOnMe" class="map-btn center-on-me-btn" title="Center on my location">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+                    </svg>
+                </button>
                 <div id="locationBanner" class="location-banner location-banner--hidden">
                     <span id="locationSpinner" class="location-spinner"></span>
                     <span id="locationBannerText">Obtaining location...</span>
