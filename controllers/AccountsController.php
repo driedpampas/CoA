@@ -109,25 +109,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             break;
         }
 
-        case "checkusername": {
-            header('Content-Type: application/json; charset=utf-8');
-            if (!isset($_POST["username"])) {
-                echo json_encode(["error" => true, "message" => "Username is required."]);
-                exit;
-            }
-
-            [$success, $errorMessage] = $userModel->checkUserExists($_POST["username"]);
-
-            if ($success) {
-                echo json_encode(["exists" => true]);
-            } else if ($errorMessage) {
-                echo json_encode(["error" => true, "message" => $errorMessage]);
-            } else {
-                echo json_encode(["exists" => false]);
-            }
-            exit;
-        }
-
         case "logout": {
             setcookie("autologin", "", time() - 3600, "/");
             session_unset();

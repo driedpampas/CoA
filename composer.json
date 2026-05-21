@@ -6,7 +6,8 @@
 	"require": {},
 	"autoload": {
 		"psr-4": {
-			"Models\\": "models/"
+			"Models\\": "models/",
+			"Handlers\\": "handlers/"
 		}
 	}
 }

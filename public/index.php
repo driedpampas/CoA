@@ -13,7 +13,6 @@ switch ($routeLevels[0] ?? '') {
     case 'login':
     case 'register':
     case 'logout':
-    case 'checkusername':
         require __DIR__ . '/../controllers/AccountsController.php';
         break;
 
