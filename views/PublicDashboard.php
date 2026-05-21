@@ -13,13 +13,13 @@
     <header class="dashboard-header">
         <h1>COA Emergency Dashboard</h1>
         <nav>
-            <a href="index.php?page=dashboard">Dashboard</a>
-            <a href="index.php?page=cap-feed" target="_blank">CAP Feed</a>
+            <a href="dashboard">Dashboard</a>
+            <a href="cap-feed" target="_blank">CAP Feed</a>
             <?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); } ?>
             <?php if (!empty($_SESSION["isLoggedIn"])): ?>
-                <a class="logged-in" href="index.php?page=login">Logged in as <?php echo htmlspecialchars($_SESSION["username"]); ?></a>
+                <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($_SESSION["username"]); ?></a>
             <?php else: ?>
-                <a href="index.php?page=login">Login</a>
+                <a href="login">Login</a>
             <?php endif; ?>
         </nav>
     </header>

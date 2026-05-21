@@ -72,4 +72,4 @@ CREATE TABLE IF NOT EXISTS auth (
     user VARCHAR(32),
     pass VARCHAR(32),
     email VARCHAR(255)
-)
+);

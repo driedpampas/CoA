@@ -4,3 +4,4 @@ vendor/
 .vscode/
 *.log
 /.phpunit.result.cache
+AGENTS.md

@@ -7,7 +7,7 @@ usernameInput.addEventListener("blur", function () {
 		return;
 	}
 
-	fetch("index.php?page=checkusername", {
+	fetch("checkusername", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/x-www-form-urlencoded",

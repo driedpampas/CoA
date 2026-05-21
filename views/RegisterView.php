@@ -17,7 +17,7 @@
     </p>
 <?php endif; ?>
 
-<form action="index.php?page=register" method="post">
+<form action="register" method="post">
     <h1>Register</h1> <label for="username">Username:</label>
     <input type="text" id="username" name="username" required autocomplete="username">
     <div id="usernameFeedback"></div>
@@ -31,6 +31,6 @@
     <input type="hidden" name="action" value="register">
     <button type="submit">Register</button>
 </form>
-<p>Already have an account? <a href="index.php?page=login">Login here</a>.</p>
+<p>Already have an account? <a href="login">Login here</a>.</p>
 </body>
 </html>

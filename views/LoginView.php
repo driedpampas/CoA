@@ -15,13 +15,13 @@
 <?php endif; ?>
 
 <?php if ($isLoggedIn) { ?>
-    <form action="index.php?page=login" method="post">
+    <form action="login" method="post">
         <h1>Login successful</h1>
         <p style="margin-bottom: 20px;">You are now logged in as <strong><?php echo $username; ?></strong>.</p>
         <input type="hidden" name="action" value="logout">
         <button type="submit" style="background-color: #e74c3c;">Logout</button> </form>
 <?php } else { ?>
-    <form action="index.php?page=login" method="post">
+    <form action="login" method="post">
         <h1>Login</h1>
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required autocomplete="username">
@@ -32,7 +32,7 @@
         <input type="hidden" name="action" value="login">
         <button type="submit">Login</button>
     </form>
-    <p>Don't have an account? <a href="index.php?page=register">Register here</a>.</p>
+    <p>Don't have an account? <a href="register">Register here</a>.</p>
 <?php } ?>
 </body>
 

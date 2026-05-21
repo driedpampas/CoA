@@ -1,11 +1,11 @@
 <?php
-$page = $_GET['page'] ?? '';
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$routeLevels = array_values(array_filter(explode('/', ltrim($uri, '/')), 'strlen'));
+$route = implode('/', $routeLevels);
 
-switch ($page) {
+switch ($routeLevels[0] ?? '') {
     case 'dashboard':
-    case 'api-events':
-    case 'api-shelters':
-    case 'api-nearest':
+    case 'api':
     case 'cap-feed':
         require __DIR__ . '/../controllers/PublicController.php';
         break;
@@ -18,6 +18,6 @@ switch ($page) {
         break;
 
     default:
-        header('Location: index.php?page=dashboard');
+        header('Location: dashboard');
         exit;
 }

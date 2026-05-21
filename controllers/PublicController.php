@@ -7,10 +7,19 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 $shelterModel = new \Models\Shelter($mysql);
-$routeModel   = new \Models\EvacuationRoute($mysql);
-$eventModel   = new \Models\Event($mysql);
+$routeModel = new \Models\EvacuationRoute($mysql);
+$eventModel = new \Models\Event($mysql);
 
-$page = $_GET['page'] ?? 'dashboard';
+function sendJsonResponse($payload, $statusCode = 200)
+{
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($payload);
+    exit;
+}
+
+$routeLevels = $routeLevels ?? [];
+$page = $routeLevels[0] ?? 'dashboard';
 
 switch ($page) {
     case 'dashboard': {
@@ -24,34 +33,51 @@ switch ($page) {
         break;
     }
 
-    case 'api-events': {
-        header('Content-Type: application/json; charset=utf-8');
-        [$ok, $events] = $eventModel->getActive();
-        echo json_encode($ok ? $events : []);
-        exit;
-    }
+    case 'api': {
+        $resource = $routeLevels[1] ?? '';
+        $action = $routeLevels[2] ?? '';
 
-    case 'api-shelters': {
-        header('Content-Type: application/json; charset=utf-8');
-        [$ok, $shelters] = $shelterModel->getAll();
-        echo json_encode($ok ? $shelters : []);
-        exit;
-    }
-
-    case 'api-nearest': {
-        header('Content-Type: application/json; charset=utf-8');
-        $lat = filter_input(INPUT_GET, 'lat', FILTER_VALIDATE_FLOAT);
-        $lng = filter_input(INPUT_GET, 'lng', FILTER_VALIDATE_FLOAT);
-
-        if ($lat === false || $lng === false || $lat === null || $lng === null) {
-            http_response_code(400);
-            echo json_encode(["error" => "Invalid or missing lat/lng parameters."]);
-            exit;
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            header('Allow: GET');
+            sendJsonResponse(['error' => 'Method not allowed.'], 405);
         }
 
-        [$ok, $shelters] = $shelterModel->findNearest($lat, $lng, 5);
-        echo json_encode($ok ? $shelters : []);
-        exit;
+        switch ($resource) {
+            case 'events': {
+                [$ok, $events] = $eventModel->getActive();
+                sendJsonResponse($ok ? $events : []);
+            }
+
+            case 'shelters': {
+                if ($action === 'nearest') {
+                    $lat = filter_input(INPUT_GET, 'lat', FILTER_VALIDATE_FLOAT);
+                    $lng = filter_input(INPUT_GET, 'lng', FILTER_VALIDATE_FLOAT);
+
+                    if ($lat === false || $lng === false || $lat === null || $lng === null) {
+                        sendJsonResponse(['error' => 'Invalid or missing lat/lng parameters.'], 400);
+                    }
+
+                    [$ok, $shelters] = $shelterModel->findNearest($lat, $lng, 5);
+                    sendJsonResponse($ok ? $shelters : []);
+                }
+
+                if ($action !== '' && ctype_digit($action)) {
+                    [$ok, $shelter] = $shelterModel->findById((int) $action);
+
+                    if (!$ok) {
+                        sendJsonResponse(['error' => $shelter], 404);
+                    }
+
+                    sendJsonResponse($shelter);
+                }
+
+                [$ok, $shelters] = $shelterModel->getAll();
+                sendJsonResponse($ok ? $shelters : []);
+            }
+
+            default:
+                sendJsonResponse(['error' => 'Not found.'], 404);
+        }
     }
 
     case 'cap-feed': {
@@ -60,7 +86,7 @@ switch ($page) {
     }
 
     default: {
-        header('Location: PublicController.php?page=dashboard');
+        header('Location: dashboard');
         exit;
     }
 }

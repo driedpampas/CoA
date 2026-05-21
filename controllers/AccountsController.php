@@ -22,11 +22,11 @@ function login($username, $password)
         $_SESSION["isLoggedIn"] = true;
         $_SESSION["username"] = $username;
         setcookie("autologin", "1", time() + 3600, "/");
-        header("Location: index.php?page=dashboard");
+        header("Location: dashboard");
         exit;
     } else {
         $_SESSION["errorMessage"] = "Invalid username or password.";
-        header("Location: index.php?page=login&error=1");
+        header("Location: login?error=1");
         exit;
     }
 }
@@ -39,7 +39,7 @@ function register($username, $password, $email)
 
     if ($success) {
         $_SESSION["errorMessage"] = $errorMessage;
-        header("Location: index.php?page=register&error=1");
+        header("Location: register?error=1");
         exit;
     }
 
@@ -47,7 +47,7 @@ function register($username, $password, $email)
 
     if (!$success) {
         $_SESSION["errorMessage"] = $errorMessage;
-        header("Location: index.php?page=register&error=1");
+        header("Location: register?error=1");
         exit;
     }
 
@@ -57,7 +57,7 @@ function register($username, $password, $email)
     $_SESSION["username"] = $username;
     setcookie("autologin", "1", time() + 3600, "/");
 
-    header("Location: index.php?page=dashboard");
+    header("Location: dashboard");
     exit;
 }
 
@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     switch ($_POST["action"] ?? "") {
         case "login": {
             if (!isset($_POST["username"]) || !isset($_POST["password"])) {
-                header("Location: index.php?page=login&error=1");
+                header("Location: login?error=1");
                 exit;
             }
             login($_POST["username"], $_POST["password"]);
@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         case "register": {
             if (!isset($_POST["username"]) || !isset($_POST["password"]) || !isset($_POST["email"])) {
                 $_SESSION["errorMessage"] = "All fields are required.";
-                header("Location: index.php?page=register&error=1");
+                header("Location: register?error=1");
                 exit;
             }
 
@@ -87,21 +87,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             //Validating username length
             if (mb_strlen($username) < 3 || mb_strlen($username) > 30) {
                 $_SESSION["errorMessage"] = "Username must be between 3 and 30 characters.";
-                header("Location: index.php?page=register&error=1");
+                header("Location: register?error=1");
                 exit;
             }
 
             //Validating passowrd length
             if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
                 $_SESSION["errorMessage"] = "Password must be between 3 and 30 characters.";
-                header("Location: index.php?page=register&error=1");
+                header("Location: register?error=1");
                 exit;
             }
 
             //Validate email format
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $_SESSION["errorMessage"] = "Please provide a valid email address.";
-                header("Location: index.php?page=register&error=1");
+                header("Location: register?error=1");
                 exit;
             }
 
@@ -132,12 +132,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             setcookie("autologin", "", time() - 3600, "/");
             session_unset();
             session_destroy();
-            header("Location: index.php?page=login");
+            header("Location: login");
             exit;
         }
 
         default: {
-            header("Location: ../controllers/AccountsController.php?error=1");
+            header("Location: login?error=1");
             exit;
         }
     }
@@ -148,7 +148,7 @@ if (isset($_GET["error"])) {
     $errorMessage = $_SESSION["errorMessage"] ?? "";
 }
 
-switch ($_GET["page"] ?? "") {
+switch ($route ?? "") {
     case "login": {
         $isLoggedIn = $_SESSION["isLoggedIn"] ?? false;
         $username = $_SESSION["username"] ?? "";

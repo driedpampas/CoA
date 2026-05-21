@@ -128,7 +128,7 @@ document.querySelector("#locateBtn").addEventListener("click", function () {
 			map.setView([lat, lng], 14);
 
 			fetch(
-				"../controllers/PublicController.php?page=api-nearest&lat=" +
+				"api/shelters/nearest?lat=" +
 					lat +
 					"&lng=" +
 					lng
