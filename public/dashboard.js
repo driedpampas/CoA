@@ -226,7 +226,7 @@ function onLocationFound(position) {
 		lat,
 		lng,
 		"| accuracy:",
-		accuracy + "m",
+		`${accuracy}m`,
 		"| timestamp:",
 		new Date(position.timestamp).toISOString(),
 	);
@@ -274,7 +274,7 @@ if (navigator.geolocation) {
 				lat,
 				lng,
 				"| accuracy:",
-				accuracy + "m",
+				`${accuracy}m`,
 			);
 
 			userLat = lat;
@@ -317,7 +317,7 @@ document.querySelector("#locateBtn").addEventListener("click", () => {
 				lat,
 				lng,
 				"| accuracy:",
-				accuracy + "m",
+				`${accuracy}m`,
 			);
 
 			userLat = lat;
@@ -416,3 +416,20 @@ document.addEventListener("click", (e) => {
 		map.setView([lat, lng], 15);
 	}
 });
+
+var menuToggle = document.getElementById("menuToggle");
+var headerNav = document.getElementById("headerNav");
+
+if (menuToggle && headerNav) {
+	menuToggle.addEventListener("click", () => {
+		menuToggle.classList.toggle("open");
+		headerNav.classList.toggle("open");
+	});
+
+	headerNav.addEventListener("click", (e) => {
+		if (e.target.tagName === "A") {
+			menuToggle.classList.remove("open");
+			headerNav.classList.remove("open");
+		}
+	});
+}

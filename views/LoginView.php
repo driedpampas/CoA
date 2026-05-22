@@ -9,11 +9,15 @@
 </head>
 
 <body>
-        <?php if ($error): ?>
-        <p class="error-message">Invalid username or password. The credentials are wrong.</p>
-        <?php endif; ?>
+    <nav class="page-nav">
+        <a href="dashboard">Dashboard</a>
+    </nav>
 
-        <?php if ($isLoggedIn) { ?>
+    <?php if ($error): ?>
+        <p class="error-message">Invalid username or password. The credentials are wrong.</p>
+    <?php endif; ?>
+
+    <?php if ($isLoggedIn) { ?>
         <form action="login" method="post">
             <h1>Login successful</h1>
             <p style="margin-bottom: 20px;">You are now logged in as
@@ -22,7 +26,7 @@
             <input type="hidden" name="action" value="logout">
             <button type="submit" style="background-color: #e74c3c;">Logout</button>
         </form>
-        <?php } else { ?>
+    <?php } else { ?>
         <form action="login" method="post">
             <h1>Login</h1>
             <label for="username">Username:</label>
@@ -35,7 +39,7 @@
             <button type="submit">Login</button>
         </form>
         <p>Don't have an account? <a href="register">Register here</a>.</p>
-        <?php } ?>
+    <?php } ?>
 </body>
 
 </html>

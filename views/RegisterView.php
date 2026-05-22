@@ -10,6 +10,10 @@
 </head>
 
 <body>
+    <nav class="page-nav">
+        <a href="dashboard">Dashboard</a>
+    </nav>
+
     <?php if ($error): ?>
         <p class="error-message">
             <?php echo htmlspecialchars($errorMessage, ENT_QUOTES, 'UTF-8') ?: "Unknown registration error. Please try again."; ?>

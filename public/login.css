@@ -119,3 +119,23 @@ p a:hover {
 	font-size: 14px;
 	order: 1;
 }
+
+/* Nav */
+.page-nav {
+	width: 100%;
+	max-width: 400px;
+	text-align: left;
+	margin-bottom: 16px;
+	order: 0;
+}
+
+.page-nav a {
+	color: #1a1a2e;
+	text-decoration: none;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.page-nav a:hover {
+	text-decoration: underline;
+}

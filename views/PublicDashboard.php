@@ -11,8 +11,15 @@
 
 <body>
     <header class="dashboard-header">
-        <h1>Dashboard</h1>
-        <nav>
+        <div class="header-top">
+            <h1>Dashboard</h1>
+            <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <nav id="headerNav">
             <a href="dashboard">Dashboard</a>
             <a href="cap-feed" target="_blank">CAP Feed</a>
             <?php if (!empty($isAdmin)): ?>

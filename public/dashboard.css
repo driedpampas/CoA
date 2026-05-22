@@ -423,3 +423,101 @@ body {
 .leaflet-control-attribution.leaflet-control {
 	display: none;
 }
+
+.menu-toggle {
+	display: none;
+}
+
+@media (max-width: 768px) {
+	.header-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		width: 100%;
+	}
+
+	.menu-toggle {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 4px;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 4px;
+	}
+
+	.menu-toggle span {
+		display: block;
+		width: 22px;
+		height: 2px;
+		background: #e0e0e0;
+		border-radius: 1px;
+		transition:
+			transform 0.2s,
+			opacity 0.2s;
+	}
+
+	.menu-toggle.open span:nth-child(1) {
+		transform: translateY(6px) rotate(45deg);
+	}
+
+	.menu-toggle.open span:nth-child(2) {
+		opacity: 0;
+	}
+
+	.menu-toggle.open span:nth-child(3) {
+		transform: translateY(-6px) rotate(-45deg);
+	}
+
+	.dashboard-header {
+		flex-direction: column;
+		padding: 0.75rem 1rem;
+	}
+
+	.dashboard-header nav {
+		display: none;
+		flex-direction: column;
+		width: 100%;
+		padding-top: 0.5rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.15);
+		margin-top: 0.5rem;
+	}
+
+	.dashboard-header nav.open {
+		display: flex;
+	}
+
+	.dashboard-header nav a {
+		margin-left: 0;
+		padding: 0.5rem 0;
+		font-size: 0.9rem;
+	}
+
+	.dashboard-content {
+		flex-direction: column;
+		height: auto;
+	}
+
+	.sidebar {
+		width: 100%;
+		min-width: 0;
+		order: 2;
+	}
+
+	.map-container {
+		min-height: 300px;
+		height: 50vh;
+		order: 1;
+	}
+
+	.layer-controls {
+		font-size: 0.75rem;
+		padding: 0.4rem 0.6rem;
+	}
+
+	.center-on-me-btn {
+		bottom: 40px;
+		right: 8px;
+	}
+}
