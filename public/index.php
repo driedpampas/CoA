@@ -10,6 +10,17 @@ switch ($routeLevels[0] ?? '') {
         require __DIR__ . '/../controllers/PublicController.php';
         break;
 
+    case 'admin':
+        $sub = $routeLevels[1] ?? '';
+        if ($sub === 'submit_event') {
+            require __DIR__ . '/../administrator/submit_event.php';
+        } elseif ($sub === 'submit_shelter') {
+            require __DIR__ . '/../administrator/submit_shelter.php';
+        } else {
+            require __DIR__ . '/../administrator/index.php';
+        }
+        break;
+
     case 'login':
     case 'register':
     case 'logout':

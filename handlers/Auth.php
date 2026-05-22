@@ -48,6 +48,7 @@ class Auth
             session_regenerate_id(true);
             $_SESSION['isLoggedIn'] = true;
             $_SESSION['username'] = $username;
+            $_SESSION['role'] = $accountModel->getRole($username) ?? 'user';
             setcookie('autologin', '1', time() + 3600, '/');
             \sendJsonResponse(['message' => 'Login successful.', 'username' => $username]);
         } else {
@@ -99,8 +100,9 @@ class Auth
         session_regenerate_id(true);
         $_SESSION['isLoggedIn'] = true;
         $_SESSION['username'] = $username;
-        setcookie('autologin', '1', time() + 3600, '/');
-        \sendJsonResponse(['message' => 'Registration successful.', 'username' => $username], 201);
+                $_SESSION['role'] = $accountModel->getRole($username) ?? 'user';
+                setcookie('autologin', '1', time() + 3600, '/');
+                \sendJsonResponse(['message' => 'Registration successful.', 'username' => $username], 201);
     }
 
     private static function checkUsername($accountModel)

@@ -21,6 +21,7 @@ function login($username, $password)
         session_regenerate_id(true);
         $_SESSION["isLoggedIn"] = true;
         $_SESSION["username"] = $username;
+        $_SESSION["role"] = $userModel->getRole($username) ?? 'user';
         setcookie("autologin", "1", time() + 3600, "/");
         header("Location: dashboard");
         exit;
@@ -51,10 +52,10 @@ function register($username, $password, $email)
         exit;
     }
 
-    // Auto-login after registration
     session_regenerate_id(true);
     $_SESSION["isLoggedIn"] = true;
     $_SESSION["username"] = $username;
+    $_SESSION["role"] = $userModel->getRole($username) ?? 'user';
     setcookie("autologin", "1", time() + 3600, "/");
 
     header("Location: dashboard");

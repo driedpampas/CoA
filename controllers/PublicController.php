@@ -33,6 +33,7 @@ switch ($page) {
         $isLoggedIn = !empty($_SESSION["isLoggedIn"]);
         $username = $_SESSION["username"] ?? "";
 
+        $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
         include __DIR__ . '/../views/PublicDashboard.php';
         break;
     }

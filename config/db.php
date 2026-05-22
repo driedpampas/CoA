@@ -36,3 +36,11 @@ if ($result && $result->num_rows === 0) {
         }
     }
 }
+
+// Ensure role column exists and seed admin role
+$colRes = $mysql->query("SHOW COLUMNS FROM auth LIKE 'role'");
+if ($colRes && $colRes->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN role VARCHAR(32) NOT NULL DEFAULT 'user'");
+}
+// Ensure admin user has admin role (idempotent)
+$mysql->query("UPDATE auth SET role='admin' WHERE user='admin'");
