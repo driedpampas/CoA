@@ -26,7 +26,7 @@ if ($result && $result->num_rows === 0) {
         }
 
         $defaultPassword = password_hash('admin', PASSWORD_DEFAULT);
-        $stmt = $mysql->prepare("INSERT INTO auth (user, pass, email) VALUES (?, ?, ?)");
+        $stmt = $mysql->prepare("INSERT INTO auth (user, pass, email, email_verified) VALUES (?, ?, ?, 1)");
         if ($stmt) {
             $admin = 'admin';
             $email = 'admin@coa.local';
@@ -44,3 +44,17 @@ if ($colRes && $colRes->num_rows === 0) {
 }
 // Ensure admin user has admin role (idempotent)
 $mysql->query("UPDATE auth SET role='admin' WHERE user='admin'");
+
+// Ensure email verification and password reset columns exist
+$emailVerifiedCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'email_verified'");
+if ($emailVerifiedCol && $emailVerifiedCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN email_verified TINYINT(1) NOT NULL DEFAULT 0");
+    $mysql->query("ALTER TABLE auth ADD COLUMN verification_token VARCHAR(64) DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD COLUMN verification_expires DATETIME DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD COLUMN reset_token VARCHAR(64) DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD COLUMN reset_expires DATETIME DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD INDEX idx_verification_token (verification_token)");
+    $mysql->query("ALTER TABLE auth ADD INDEX idx_reset_token (reset_token)");
+    // Mark existing admin as verified
+    $mysql->query("UPDATE auth SET email_verified = 1 WHERE user = 'admin'");
+}

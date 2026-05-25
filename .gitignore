@@ -5,3 +5,5 @@ vendor/
 *.log
 /.phpunit.result.cache
 AGENTS.md
+config/resend.php
+.htaccess

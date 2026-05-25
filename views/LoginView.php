@@ -10,11 +10,17 @@
 
 <body>
     <nav class="page-nav">
-        <a href="dashboard">Dashboard</a>
+        <a href="dashboard">&#8592; Dashboard</a>
     </nav>
 
     <?php if ($error): ?>
-        <p class="error-message">Invalid username or password. The credentials are wrong.</p>
+        <p class="error-message"><?php echo htmlspecialchars($errorMessage ?: 'Invalid username or password.', ENT_QUOTES, 'UTF-8'); ?></p>
+    <?php endif; ?>
+
+    <?php if (!empty($successMessage)): ?>
+        <p style="background-color:#f0fff0;color:#1a7a1a;border:1px solid #87c687;padding:12px;border-radius:6px;width:100%;max-width:400px;margin-bottom:20px;text-align:center;font-size:14px;order:1;">
+            <?php echo htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8'); ?>
+        </p>
     <?php endif; ?>
 
     <?php if ($isLoggedIn) { ?>
@@ -29,11 +35,12 @@
     <?php } else { ?>
         <form action="login" method="post">
             <h1>Login</h1>
-            <label for="username">Username:</label>
+            <label for="username">Username or Email:</label>
             <input type="text" id="username" name="username" required autocomplete="username">
 
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required autocomplete="current-password">
+            <p style="margin-top:-12px;margin-bottom:16px;font-size:13px;"><a href="forgot-password">Forgot password?</a></p>
 
             <input type="hidden" name="action" value="login">
             <button type="submit">Login</button>

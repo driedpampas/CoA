@@ -11,7 +11,7 @@
 
 <body>
     <nav class="page-nav">
-        <a href="dashboard">Dashboard</a>
+        <a href="dashboard">&#8592; Dashboard</a>
     </nav>
 
     <?php if ($error): ?>
@@ -25,11 +25,11 @@
         <input type="text" id="username" name="username" required autocomplete="username">
         <div id="usernameFeedback"></div>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required autocomplete="new-password">
-
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required autocomplete="email">
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required autocomplete="new-password">
 
         <input type="hidden" name="action" value="register">
         <button type="submit">Register</button>

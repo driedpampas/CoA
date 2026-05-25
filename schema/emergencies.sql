@@ -73,5 +73,12 @@ CREATE TABLE IF NOT EXISTS auth (
     pass VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
-    PRIMARY KEY (user)
+    email_verified TINYINT(1) NOT NULL DEFAULT 0,
+    verification_token VARCHAR(64) DEFAULT NULL,
+    verification_expires DATETIME DEFAULT NULL,
+    reset_token VARCHAR(64) DEFAULT NULL,
+    reset_expires DATETIME DEFAULT NULL,
+    PRIMARY KEY (user),
+    INDEX idx_verification_token (verification_token),
+    INDEX idx_reset_token (reset_token)
 );

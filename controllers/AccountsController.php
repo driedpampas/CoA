@@ -13,11 +13,25 @@ $username = "";
 $error = false;
 $errorMessage = "";
 
-function login($username, $password)
+function login($login, $password)
 {
     global $userModel;
 
+    $username = $userModel->resolveUsername($login);
+
+    if (!$username) {
+        $_SESSION["errorMessage"] = "Invalid username or password.";
+        header("Location: login?error=1");
+        exit;
+    }
+
     if ($userModel->checkUserAndPassword($username, $password)) {
+        if (!$userModel->isEmailVerified($username)) {
+            $_SESSION["errorMessage"] = "Please verify your email address before logging in.";
+            header("Location: login?error=1");
+            exit;
+        }
+
         session_regenerate_id(true);
         $_SESSION["isLoggedIn"] = true;
         $_SESSION["username"] = $username;
@@ -52,14 +66,120 @@ function register($username, $password, $email)
         exit;
     }
 
-    session_regenerate_id(true);
-    $_SESSION["isLoggedIn"] = true;
-    $_SESSION["username"] = $username;
-    $_SESSION["role"] = $userModel->getRole($username) ?? 'user';
-    setcookie("autologin", "1", time() + 3600, "/");
+    [$ok, $tokenOrError] = $userModel->setVerificationToken($username);
 
-    header("Location: dashboard");
+    if ($ok) {
+        \Models\Email::sendVerificationEmail($email, $username, $tokenOrError);
+    }
+
+    $_SESSION["successMessage"] = "Registration successful. Please check your email to verify your account.";
+    header("Location: check-email");
     exit;
+}
+
+function handleForgotPassword()
+{
+    global $userModel;
+
+    $email = trim(filter_var($_POST["email"] ?? "", FILTER_SANITIZE_EMAIL));
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $_SESSION["errorMessage"] = "Please provide a valid email address.";
+        header("Location: forgot-password?error=1");
+        exit;
+    }
+
+    [$ok, $result] = $userModel->setResetToken($email);
+
+    if ($ok) {
+        \Models\Email::sendPasswordResetEmail($result['email'], $result['username'], $result['token']);
+    }
+
+    $_SESSION["successMessage"] = "If an account with that email exists, a password reset link has been sent.";
+    header("Location: forgot-password");
+    exit;
+}
+
+function handleResetPassword()
+{
+    global $userModel;
+
+    $token = $_POST["token"] ?? "";
+    $password = $_POST["password"] ?? "";
+    $confirm = $_POST["confirm_password"] ?? "";
+
+    if (!$token || !$password || !$confirm) {
+        $_SESSION["errorMessage"] = "All fields are required.";
+        header("Location: reset-password?token=" . urlencode($token) . "&error=1");
+        exit;
+    }
+
+    if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
+        $_SESSION["errorMessage"] = "Password must be between 3 and 30 characters.";
+        header("Location: reset-password?token=" . urlencode($token) . "&error=1");
+        exit;
+    }
+
+    if ($password !== $confirm) {
+        $_SESSION["errorMessage"] = "Passwords do not match.";
+        header("Location: reset-password?token=" . urlencode($token) . "&error=1");
+        exit;
+    }
+
+    [$ok, $msg] = $userModel->resetPassword($token, $password);
+
+    if (!$ok) {
+        $_SESSION["errorMessage"] = $msg;
+        header("Location: reset-password?token=" . urlencode($token) . "&error=1");
+        exit;
+    }
+
+    $_SESSION["successMessage"] = "Password reset successful. You can now log in.";
+    header("Location: login");
+    exit;
+}
+
+function showVerify()
+{
+    global $userModel;
+
+    $token = $_GET["token"] ?? "";
+    if (!$token) {
+        $verifyError = "Invalid verification link.";
+        include __DIR__ . '/../views/VerifyView.php';
+        return;
+    }
+
+    [$ok, $msg] = $userModel->verifyEmail($token);
+
+    if ($ok) {
+        $verifiedUsername = $msg;
+        $email = $userModel->getEmailByUsername($msg);
+        if ($email) {
+            \Models\Email::sendWelcomeEmail($email, $msg);
+        }
+    } else {
+        $verifyError = $msg;
+    }
+
+    include __DIR__ . '/../views/VerifyView.php';
+}
+
+function showResetPassword()
+{
+    global $userModel;
+
+    $token = $_GET["token"] ?? "";
+    $resetError = null;
+
+    if ($token) {
+        [$ok, $msg] = $userModel->verifyResetToken($token);
+        if (!$ok) {
+            $resetError = $msg;
+        }
+    }
+
+    include __DIR__ . '/../views/ResetPasswordView.php';
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -109,6 +229,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             break;
         }
 
+        case "forgot-password":
+            handleForgotPassword();
+            break;
+
+        case "reset-password":
+            handleResetPassword();
+            break;
+
         case "logout": {
             setcookie("autologin", "", time() - 3600, "/");
             session_unset();
@@ -127,7 +255,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 if (isset($_GET["error"])) {
     $error = true;
     $errorMessage = $_SESSION["errorMessage"] ?? "";
+    unset($_SESSION["errorMessage"]);
 }
+
+$successMessage = $_SESSION["successMessage"] ?? "";
+unset($_SESSION["successMessage"]);
 
 switch ($route ?? "") {
     case "login": {
@@ -137,15 +269,29 @@ switch ($route ?? "") {
         break;
     }
 
-    case "register": {
+    case "register":
         include __DIR__ . '/../views/RegisterView.php';
         break;
-    }
 
-    case "error": {
+    case "verify":
+        showVerify();
+        break;
+
+    case "check-email":
+        include __DIR__ . '/../views/CheckEmailView.php';
+        break;
+
+    case "forgot-password":
+        include __DIR__ . '/../views/ForgotPasswordView.php';
+        break;
+
+    case "reset-password":
+        showResetPassword();
+        break;
+
+    case "error":
         include __DIR__ . '/../views/Error.php';
         break;
-    }
 
     default: {
         $isLoggedIn = $_SESSION["isLoggedIn"] ?? false;
