@@ -60,6 +60,7 @@ if ($latitude === null || $longitude === null) {
 }
 
 $ok = $stmt->execute();
+$eventId = $stmt->insert_id;
 $error = $stmt->error ?? '';
 $stmt->close();
 
@@ -67,6 +68,22 @@ if (!$ok) {
     header('Location: /admin?error_event=' . urlencode('DB insert failed: ' . $error));
     exit;
 }
+
+$notifModel = new \Models\Notification($mysql);
+$severityMap = [
+    'low' => 'info',
+    'moderate' => 'warning',
+    'high' => 'warning',
+    'extreme' => 'critical',
+];
+$notifSeverity = $severityMap[$severity] ?? 'info';
+$notifModel->create(
+    'New ' . $event_type . ' event',
+    $title . ($description !== '' ? ' — ' . mb_strimwidth($description, 0, 120, '...') : ''),
+    'event',
+    $notifSeverity,
+    $eventId
+);
 
 header('Location: /admin?success_event=1');
 exit;

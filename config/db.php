@@ -58,3 +58,20 @@ if ($emailVerifiedCol && $emailVerifiedCol->num_rows === 0) {
     // Mark existing admin as verified
     $mysql->query("UPDATE auth SET email_verified = 1 WHERE user = 'admin'");
 }
+
+$notifTable = $mysql->query("SHOW TABLES LIKE 'notifications'");
+if ($notifTable && $notifTable->num_rows === 0) {
+    $mysql->query("CREATE TABLE IF NOT EXISTS notifications (
+        id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
+        title           VARCHAR(255)        NOT NULL,
+        message         TEXT                NOT NULL,
+        type            ENUM('event', 'shelter', 'system') NOT NULL DEFAULT 'system',
+        severity        ENUM('info', 'warning', 'critical') NOT NULL DEFAULT 'info',
+        reference_id    INT UNSIGNED        DEFAULT NULL,
+        is_read         TINYINT(1)          NOT NULL DEFAULT 0,
+        created_at      TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX idx_notifications_read (is_read),
+        INDEX idx_notifications_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}

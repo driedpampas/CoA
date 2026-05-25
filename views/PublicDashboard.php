@@ -12,7 +12,27 @@
 <body>
     <header class="dashboard-header">
         <div class="header-top">
-            <h1>Dashboard</h1>
+            <div class="header-brand">
+                <h1>Dashboard</h1>
+                <div class="notification-wrapper">
+                    <button id="notificationBell" class="notification-bell" aria-label="Notifications">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span id="notificationBadge" class="notification-badge<?php echo $unreadCount > 0 ? '' : ' hidden'; ?>"><?php echo $unreadCount; ?></span>
+                    </button>
+                    <div id="notificationDropdown" class="notification-dropdown hidden">
+                        <div class="notification-header">
+                            <strong>Notifications</strong>
+                            <button id="markAllRead" class="mark-all-read">Mark all read</button>
+                        </div>
+                        <div id="notificationList" class="notification-list">
+                            <p class="empty-state">No notifications.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation">
                 <span></span>
                 <span></span>
@@ -20,7 +40,6 @@
             </button>
         </div>
         <nav id="headerNav">
-            <a href="dashboard">Dashboard</a>
             <a href="cap-feed" target="_blank">CAP Feed</a>
             <?php if (!empty($isAdmin)): ?>
                 <a href="admin">Admin</a>
@@ -124,6 +143,7 @@
     <script>
         var eventsData = <?php echo json_encode($events, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         var sheltersData = <?php echo json_encode($shelters, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
+        var unreadNotificationCount = <?php echo (int) $unreadCount; ?>;
     </script>
     <script src="dashboard.js"></script>
 </body>

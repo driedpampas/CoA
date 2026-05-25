@@ -10,6 +10,7 @@ $shelterModel = new \Models\Shelter($mysql);
 $routeModel = new \Models\EvacuationRoute($mysql);
 $eventModel = new \Models\Event($mysql);
 $accountModel = new \Models\Account($mysql);
+$notificationModel = new \Models\Notification($mysql);
 
 function sendJsonResponse($payload, $statusCode = 200)
 {
@@ -29,6 +30,9 @@ switch ($page) {
 
         [$ok, $shelters] = $shelterModel->getAll();
         $shelters = $ok ? $shelters : [];
+
+        [$ok, $unreadCount] = $notificationModel->getUnreadCount();
+        $unreadCount = $ok ? $unreadCount : 0;
 
         $isLoggedIn = !empty($_SESSION["isLoggedIn"]);
         $username = $_SESSION["username"] ?? "";
@@ -54,6 +58,9 @@ switch ($page) {
                 break;
             case 'auth':
                 \Handlers\Auth::handle($accountModel, $action);
+                break;
+            case 'notifications':
+                \Handlers\Notifications::handle($notificationModel, $action, $routeLevels[3] ?? '');
                 break;
             default:
                 sendJsonResponse(['error' => 'Not found.'], 404);

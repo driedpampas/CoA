@@ -1,5 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0; 
 
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS shelters;
 DROP TABLE IF EXISTS evacuation_routes;
 DROP TABLE IF EXISTS emergency_events;
@@ -81,4 +82,18 @@ CREATE TABLE IF NOT EXISTS auth (
     PRIMARY KEY (user),
     INDEX idx_verification_token (verification_token),
     INDEX idx_reset_token (reset_token)
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
+    title           VARCHAR(255)        NOT NULL,
+    message         TEXT                NOT NULL,
+    type            ENUM('event', 'shelter', 'system') NOT NULL DEFAULT 'system',
+    severity        ENUM('info', 'warning', 'critical') NOT NULL DEFAULT 'info',
+    reference_id    INT UNSIGNED        DEFAULT NULL,
+    is_read         TINYINT(1)          NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_notifications_read (is_read),
+    INDEX idx_notifications_created (created_at)
 );
