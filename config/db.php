@@ -75,3 +75,15 @@ if ($notifTable && $notifTable->num_rows === 0) {
         INDEX idx_notifications_created (created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 }
+
+$uaicCheck = $mysql->query("SELECT id FROM shelters WHERE name = 'Universitatea Alexandru Ioan Cuza' LIMIT 1");
+if ($uaicCheck && $uaicCheck->num_rows === 0) {
+    $mysql->query("INSERT INTO shelters (name, address, latitude, longitude, geom_point, capacity, current_occupancy, shelter_type, status, contact_phone, notes)
+        VALUES ('Universitatea Alexandru Ioan Cuza', 'Bulevardul Carol I 11, Iasi', 47.1756, 27.5768, ST_GeomFromText('POINT(27.5768 47.1756)', 4326), 800, 0, 'school', 'open', '0232-201-201', 'University campus shelter, main building')");
+}
+
+$earthquakeCheck = $mysql->query("SELECT id FROM emergency_events WHERE title = 'Earthquake near Holboca' LIMIT 1");
+if ($earthquakeCheck && $earthquakeCheck->num_rows === 0) {
+    $mysql->query("INSERT INTO emergency_events (event_type, title, description, severity, latitude, longitude, status, started_at)
+        VALUES ('earthquake', 'Earthquake near Holboca', 'Magnitude 5.2 earthquake detected near Holboca, approximately 20km northeast of Iasi city center. Tremors felt across the entire metropolitan area. Buildings inspected for structural damage.', 'extreme', 47.3500, 27.6500, 'active', DATE_SUB(NOW(), INTERVAL 15 MINUTE))");
+}

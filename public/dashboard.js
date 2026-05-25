@@ -1,4 +1,4 @@
-var map = L.map("map").setView([47.1622, 27.5889], 13);
+var map = L.map("map").setView([47.1835, 27.5644], 14);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 	attribution:
@@ -10,6 +10,11 @@ var eventsLayer = L.layerGroup().addTo(map);
 var sheltersLayer = L.layerGroup().addTo(map);
 var userLocationLayer = L.layerGroup().addTo(map);
 var routesLayer = L.layerGroup().addTo(map);
+var osrmRouteLayer = null;
+
+var MOCK_LAT = 47.1835;
+var MOCK_LNG = 27.5644;
+var PROXIMITY_RADIUS_KM = 25;
 
 function getMarkerColor(eventType) {
 	var colors = {
@@ -38,18 +43,23 @@ var shelterIcon = L.divIcon({
 	iconAnchor: [7, 7],
 });
 
-eventsData.forEach((event) => {
-	if (!event.latitude || !event.longitude) return;
+function renderEventsOnMap() {
+	eventsLayer.clearLayers();
+	eventsData.forEach((event) => {
+		if (!event.latitude || !event.longitude) return;
 
-	var color = getMarkerColor(event.event_type);
-	var marker = L.marker([event.latitude, event.longitude], {
-		icon: getMarkerIcon(color),
-	}).addTo(eventsLayer);
+		var color = getMarkerColor(event.event_type);
+		var marker = L.marker([event.latitude, event.longitude], {
+			icon: getMarkerIcon(color),
+		}).addTo(eventsLayer);
 
-	marker.bindPopup(
-		`<strong>${event.title}</strong><br><span class="badge badge-${event.event_type}" style="font-size:11px;">${event.event_type}</span><br>Severity: ${event.severity}<br><small>${event.started_at}</small><br><p style='margin-top:6px;font-size:12px;'>${(event.description || "").substring(0, 150)}</p>`,
-	);
-});
+		marker.bindPopup(
+			`<strong>${event.title}</strong><br><span class="badge badge-${event.event_type}" style="font-size:11px;">${event.event_type}</span><br>Severity: ${event.severity}<br><small>${event.started_at}</small><br><p style='margin-top:6px;font-size:12px;'>${(event.description || "").substring(0, 150)}</p>`,
+		);
+	});
+}
+
+renderEventsOnMap();
 
 sheltersData.forEach((shelter) => {
 	if (!shelter.latitude || !shelter.longitude) return;
@@ -90,23 +100,7 @@ function showLocationBanner(text, isError) {
 
 function hideLocationBanner() {
 	if (!locationBannerEl) return;
-	console.log("[Location] Hiding banner");
-	console.trace();
 	locationBannerEl.classList.add("location-banner--hidden");
-}
-
-function showLocationSpinner() {
-	if (!locationBannerEl) return;
-	clearTimeout(hideBannerTimeout);
-	console.log("[Location] Obtaining location...");
-	locationBannerTextEl.textContent = "Obtaining location...";
-	locationBannerEl.classList.remove(
-		"location-banner--hidden",
-		"location-banner--error",
-		"location-banner--success",
-	);
-	var spinner = document.querySelector("#locationSpinner");
-	if (spinner) spinner.style.display = "";
 }
 
 var userLocationIcon = L.divIcon({
@@ -139,7 +133,7 @@ function updateUserMarker(lat, lng, accuracy) {
 }
 
 function fetchNearestShelters(lat, lng) {
-	fetch(`api/shelters/nearest?lat=${lat}&lng=${lng}`)
+	fetch("api/shelters/nearest?lat=" + lat + "&lng=" + lng)
 		.then((response) => response.json())
 		.then((nearestShelters) => {
 			var listEl = document.querySelector("#shelterList");
@@ -154,13 +148,13 @@ function fetchNearestShelters(lat, lng) {
 			nearestShelters.forEach((s) => {
 				var dist =
 					s.distance_meters < 1000
-						? `${s.distance_meters} m`
-						: `${(s.distance_meters / 1000).toFixed(1)} km`;
+						? s.distance_meters + " m"
+						: (s.distance_meters / 1000).toFixed(1) + " km";
 				var div = document.createElement("div");
 				div.className = "shelter-item";
 				div.setAttribute("data-lat", s.latitude);
 				div.setAttribute("data-lng", s.longitude);
-				div.innerHTML = `<strong>${s.name}</strong><span class="badge badge-status-${s.status}">${s.status}</span><span class="badge badge-type-${s.shelter_type}">${s.shelter_type}</span><small>${s.address}</small><small>Distance: ${dist}</small><small>Capacity: ${s.current_occupancy} / ${s.capacity}</small>`;
+				div.innerHTML = "<strong>" + s.name + "</strong><span class='badge badge-status-" + s.status + "'>" + s.status + "</span><span class='badge badge-type-" + s.shelter_type + "'>" + s.shelter_type + "</span><small>" + s.address + "</small><small>Distance: " + dist + "</small><small>Capacity: " + s.current_occupancy + " / " + s.capacity + "</small>";
 				listEl.appendChild(div);
 			});
 		});
@@ -171,7 +165,7 @@ function clearRoutes() {
 }
 
 function fetchNearestRoutes(lat, lng) {
-	fetch(`api/routes/nearest?lat=${lat}&lng=${lng}`)
+	fetch("api/routes/nearest?lat=" + lat + "&lng=" + lng)
 		.then((response) => response.json())
 		.then((routes) => {
 			clearRoutes();
@@ -187,7 +181,7 @@ function fetchNearestRoutes(lat, lng) {
 				}).addTo(routesLayer);
 
 				polyline.bindPopup(
-					`<strong>${route.name}</strong><br>Route to: ${route.shelter_name}<br>Duration: ~${route.estimated_minutes} min<br>Distance: ${route.distance_meters} m<br>Status: <span style="color:${route.status === "blocked" ? "#d32f2f" : "#4caf50"};">${route.status}</span>`,
+					"<strong>" + route.name + "</strong><br>Route to: " + route.shelter_name + "<br>Duration: ~" + route.estimated_minutes + " min<br>Distance: " + route.distance_meters + " m<br>Status: <span style='color:" + (route.status === "blocked" ? "#d32f2f" : "#4caf50") + ";'>" + route.status + "</span>",
 				);
 			});
 
@@ -204,176 +198,194 @@ function fetchNearestRoutes(lat, lng) {
 				routes.forEach((route) => {
 					var dist =
 						route.distance_from_point < 1000
-							? `${route.distance_from_point} m`
-							: `${(route.distance_from_point / 1000).toFixed(1)} km`;
+							? route.distance_from_point + " m"
+							: (route.distance_from_point / 1000).toFixed(1) + " km";
 					var div = document.createElement("div");
 					div.className = "route-item";
 					div.setAttribute("data-route-id", route.id);
-					div.innerHTML = `<strong>${route.name}</strong><span class="badge badge-status-${route.status}">${route.status}</span><small>To: ${route.shelter_name}</small><small>Duration: ~${route.estimated_minutes} min | ${dist}</small>`;
+					div.innerHTML = "<strong>" + route.name + "</strong><span class='badge badge-status-" + route.status + "'>" + route.status + "</span><small>To: " + route.shelter_name + "</small><small>Duration: ~" + route.estimated_minutes + " min | " + dist + "</small>";
 					routeListEl.appendChild(div);
 				});
 			}
 		});
 }
 
-function onLocationFound(position) {
-	var lat = position.coords.latitude;
-	var lng = position.coords.longitude;
-	var accuracy = position.coords.accuracy;
-
-	console.log(
-		"[Location] Found:",
-		lat,
-		lng,
-		"| accuracy:",
-		`${accuracy}m`,
-		"| timestamp:",
-		new Date(position.timestamp).toISOString(),
-	);
-
-	userLat = lat;
-	userLng = lng;
-
-	showLocationBanner("Location found.", false);
-	hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
-
-	updateUserMarker(lat, lng, accuracy);
-	fetchNearestShelters(lat, lng);
-	fetchNearestRoutes(lat, lng);
+function haversineDistance(lat1, lng1, lat2, lng2) {
+	var R = 6371;
+	var dLat = (lat2 - lat1) * Math.PI / 180;
+	var dLng = (lng2 - lng1) * Math.PI / 180;
+	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+		Math.sin(dLng / 2) * Math.sin(dLng / 2);
+	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return R * c;
 }
 
-function onLocationError(error) {
-	console.error(
-		"[Location] Error code:",
-		error.code,
-		"| message:",
-		error.message,
-	);
-	showLocationBanner(`Could not obtain location: ${error.message}`, true);
+function findNearestShelter(lat, lng) {
+	var nearest = null;
+	var nearestDist = Infinity;
+	sheltersData.forEach(function(shelter) {
+		if (!shelter.latitude || !shelter.longitude) return;
+		var dist = haversineDistance(lat, lng, parseFloat(shelter.latitude), parseFloat(shelter.longitude));
+		if (dist < nearestDist) {
+			nearestDist = dist;
+			nearest = shelter;
+		}
+	});
+	return nearest;
 }
 
-showLocationSpinner();
+function fetchOSRMRoute(fromLat, fromLng, toLat, toLng) {
+	var url = "https://router.project-osrm.org/route/v1/driving/" +
+		fromLng + "," + fromLat + ";" + toLng + "," + toLat +
+		"?overview=full&geometries=geojson&steps=true";
 
-if (navigator.geolocation) {
-	console.log("[Location] Requesting initial position (getCurrentPosition)...");
-	navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError, {
-		enableHighAccuracy: true,
-		timeout: 10000,
-		maximumAge: 300000,
+	fetch(url)
+		.then(function(r) { return r.json(); })
+		.then(function(data) {
+			if (data.routes && data.routes.length > 0) {
+				displayOSRMRoute(data.routes[0]);
+			}
+		})
+		.catch(function(err) {
+			console.error("[OSRM] Route fetch failed:", err);
+		});
+}
+
+function displayOSRMRoute(route) {
+	if (osrmRouteLayer) {
+		map.removeLayer(osrmRouteLayer);
+	}
+
+	var coords = route.geometry.coordinates.map(function(c) {
+		return [c[1], c[0]];
 	});
 
-	console.log("[Location] Starting watchPosition...");
-	navigator.geolocation.watchPosition(
-		(position) => {
-			var lat = position.coords.latitude;
-			var lng = position.coords.longitude;
-			var accuracy = position.coords.accuracy;
+	var durationMin = Math.round(route.duration / 60);
+	var distKm = (route.distance / 1000).toFixed(1);
 
-			console.log(
-				"[Location] watchPosition update:",
-				lat,
-				lng,
-				"| accuracy:",
-				`${accuracy}m`,
-			);
+	osrmRouteLayer = L.polyline(coords, {
+		color: "#ff6f00",
+		weight: 6,
+		opacity: 0.85,
+	}).addTo(map);
 
-			userLat = lat;
-			userLng = lng;
-
-			updateUserMarker(lat, lng, accuracy);
-			fetchNearestShelters(lat, lng);
-			fetchNearestRoutes(lat, lng);
-		},
-		(error) => {
-			console.warn(
-				"[Location] watchPosition error:",
-				error.code,
-				error.message,
-			);
-		},
-		{ enableHighAccuracy: true, maximumAge: 60000 },
+	osrmRouteLayer.bindPopup(
+		"<strong>Evacuation Route (OSRM)</strong><br>" +
+		"Distance: " + distKm + " km<br>" +
+		"Estimated time: ~" + durationMin + " min"
 	);
-} else {
-	console.error("[Location] Geolocation not supported by browser");
-	showLocationBanner("Geolocation is not supported by this browser.", true);
+
+	map.fitBounds(osrmRouteLayer.getBounds(), { padding: [50, 50] });
 }
 
-document.querySelector("#locateBtn").addEventListener("click", () => {
-	if (!navigator.geolocation) {
-		showLocationBanner("Geolocation is not supported by this browser.", true);
-		return;
+var proximityActive = false;
+
+function checkEventProximity() {
+	if (!userLat || !userLng || !eventsData || eventsData.length === 0) return;
+
+	var nearestEvent = null;
+	var nearestDist = Infinity;
+
+	eventsData.forEach(function(event) {
+		if (!event.latitude || !event.longitude) return;
+		if (event.status !== "active") return;
+		var dist = haversineDistance(userLat, userLng, parseFloat(event.latitude), parseFloat(event.longitude));
+		if (dist < nearestDist) {
+			nearestDist = dist;
+			nearestEvent = event;
+		}
+	});
+
+	if (nearestEvent && nearestDist <= PROXIMITY_RADIUS_KM) {
+		if (!proximityActive) {
+			proximityActive = true;
+			triggerProximityAlert(nearestEvent, nearestDist);
+		}
+	} else {
+		if (proximityActive) {
+			proximityActive = false;
+			clearProximityAlert();
+		}
 	}
+}
 
-	showLocationSpinner();
+function triggerProximityAlert(event, distance) {
+	console.log("[Proximity] Alert triggered for:", event.title, "at", distance.toFixed(1), "km");
 
-	navigator.geolocation.getCurrentPosition(
-		(position) => {
-			var lat = position.coords.latitude;
-			var lng = position.coords.longitude;
-			var accuracy = position.coords.accuracy;
+	var header = document.querySelector(".dashboard-header");
+	if (header) header.classList.add("header-alert");
 
-			console.log(
-				"[Location] Manual locate:",
-				lat,
-				lng,
-				"| accuracy:",
-				`${accuracy}m`,
-			);
+	map.setView([userLat, userLng], 13);
 
-			userLat = lat;
-			userLng = lng;
-
-			showLocationBanner("Location found.", false);
-			hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
-
-			updateUserMarker(lat, lng, accuracy);
-			map.setView([lat, lng], 14);
-			fetchNearestShelters(lat, lng);
-			fetchNearestRoutes(lat, lng);
-		},
-		(error) => {
-			console.error(
-				"[Location] Manual locate error:",
-				error.code,
-				error.message,
-			);
-			showLocationBanner(`Could not obtain location: ${error.message}`, true);
-		},
-		{ enableHighAccuracy: true, timeout: 10000 },
-	);
-});
-
-document.querySelector("#centerOnMe").addEventListener("click", () => {
-	if (userLat !== null && userLng !== null) {
-		map.setView([userLat, userLng], 15);
-	} else if (navigator.geolocation) {
-		showLocationSpinner();
-		navigator.geolocation.getCurrentPosition(
-			(position) => {
-				var lat = position.coords.latitude;
-				var lng = position.coords.longitude;
-				var accuracy = position.coords.accuracy;
-				userLat = lat;
-				userLng = lng;
-				updateUserMarker(lat, lng, accuracy);
-				map.setView([lat, lng], 15);
-				showLocationBanner("Location found.", false);
-				hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
-			},
-			(error) => {
-				console.error(
-					"[Location] Center on me error:",
-					error.code,
-					error.message,
-				);
-				showLocationBanner(`Could not obtain location: ${error.message}`, true);
-			},
-			{ enableHighAccuracy: true, timeout: 10000 },
+	var nearestShelter = findNearestShelter(userLat, userLng);
+	if (nearestShelter) {
+		fetchOSRMRoute(
+			userLat, userLng,
+			parseFloat(nearestShelter.latitude), parseFloat(nearestShelter.longitude)
 		);
 	}
+}
+
+function clearProximityAlert() {
+	console.log("[Proximity] Alert cleared");
+
+	var header = document.querySelector(".dashboard-header");
+	if (header) header.classList.remove("header-alert");
+
+	if (osrmRouteLayer) {
+		map.removeLayer(osrmRouteLayer);
+		osrmRouteLayer = null;
+	}
+}
+
+function pollEvents() {
+	fetch("api/events")
+		.then(function(r) { return r.json(); })
+		.then(function(data) {
+			eventsData = data;
+			renderEventsOnMap();
+			checkEventProximity();
+		})
+		.catch(function(err) {
+			console.warn("[Poll] Failed to fetch events:", err);
+		});
+}
+
+function setUserLocation(lat, lng) {
+	userLat = lat;
+	userLng = lng;
+	updateUserMarker(lat, lng, 50);
+	fetchNearestShelters(lat, lng);
+	fetchNearestRoutes(lat, lng);
+	checkEventProximity();
+}
+
+function initMockLocation() {
+	console.log("[Location] Using mock location: Copou Park (" + MOCK_LAT + ", " + MOCK_LNG + ")");
+	setUserLocation(MOCK_LAT, MOCK_LNG);
+	showLocationBanner("Mock location: Copou Park, Iasi", false);
+	hideBannerTimeout = setTimeout(hideLocationBanner, 4000);
+}
+
+initMockLocation();
+
+setInterval(pollEvents, 15000);
+
+document.querySelector("#locateBtn").addEventListener("click", function() {
+	setUserLocation(MOCK_LAT, MOCK_LNG);
+	map.setView([MOCK_LAT, MOCK_LNG], 14);
+	showLocationBanner("Mock location: Copou Park, Iasi", false);
+	hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
 });
 
-document.querySelector("#toggleEvents").addEventListener("change", (e) => {
+document.querySelector("#centerOnMe").addEventListener("click", function() {
+	if (userLat !== null && userLng !== null) {
+		map.setView([userLat, userLng], 15);
+	}
+});
+
+document.querySelector("#toggleEvents").addEventListener("change", function(e) {
 	if (e.target.checked) {
 		eventsLayer.addTo(map);
 	} else {
@@ -381,7 +393,7 @@ document.querySelector("#toggleEvents").addEventListener("change", (e) => {
 	}
 });
 
-document.querySelector("#toggleShelters").addEventListener("change", (e) => {
+document.querySelector("#toggleShelters").addEventListener("change", function(e) {
 	if (e.target.checked) {
 		sheltersLayer.addTo(map);
 	} else {
@@ -389,7 +401,7 @@ document.querySelector("#toggleShelters").addEventListener("change", (e) => {
 	}
 });
 
-document.querySelector("#toggleUser").addEventListener("change", (e) => {
+document.querySelector("#toggleUser").addEventListener("change", function(e) {
 	if (e.target.checked) {
 		userLocationLayer.addTo(map);
 	} else {
@@ -397,7 +409,7 @@ document.querySelector("#toggleUser").addEventListener("change", (e) => {
 	}
 });
 
-document.querySelector("#toggleRoutes").addEventListener("change", (e) => {
+document.querySelector("#toggleRoutes").addEventListener("change", function(e) {
 	if (e.target.checked) {
 		routesLayer.addTo(map);
 	} else {
@@ -405,7 +417,7 @@ document.querySelector("#toggleRoutes").addEventListener("change", (e) => {
 	}
 });
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", function(e) {
 	var item = e.target.closest(".event-item, .shelter-item");
 	if (!item) return;
 
@@ -421,12 +433,12 @@ var menuToggle = document.getElementById("menuToggle");
 var headerNav = document.getElementById("headerNav");
 
 if (menuToggle && headerNav) {
-	menuToggle.addEventListener("click", () => {
+	menuToggle.addEventListener("click", function() {
 		menuToggle.classList.toggle("open");
 		headerNav.classList.toggle("open");
 	});
 
-	headerNav.addEventListener("click", (e) => {
+	headerNav.addEventListener("click", function(e) {
 		if (e.target.tagName === "A") {
 			menuToggle.classList.remove("open");
 			headerNav.classList.remove("open");
