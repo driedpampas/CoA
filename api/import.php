@@ -1,13 +1,9 @@
 <?php
 set_time_limit(60);
 
-if (!defined('STDERR')) {
-    define('STDERR', fopen('php://output', 'w'));
-}
-
 require_once __DIR__ . '/../config/db.php';
 if (!isset($mysql) || !($mysql instanceof mysqli)) {
-    fwrite(STDERR, "Error: Database connection not available.\n");
+    echo "Error: Database connection not available.\n";
     exit(3);
 }
 
@@ -17,7 +13,8 @@ $startTime = date('Y-m-d\TH:i:s', strtotime($timeWindow));
 
 $apiUrl = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=text&starttime=" . urlencode($startTime) . "&minmagnitude=4.0";
 
-if (php_sapi_name() !== 'cli') echo "<pre>";
+if (php_sapi_name() !== 'cli')
+    echo "<pre>";
 echo "Fetching data (since $startTime)\n";
 $ch = curl_init();
 curl_setopt_array($ch, [
@@ -33,17 +30,17 @@ curl_setopt_array($ch, [
 $body = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlErr = curl_error($ch);
-curl_close($ch);
 
 //In case nothing is found
 if ($httpCode === 204 || ($httpCode === 200 && trim($body) === '')) {
     echo "Import finished. No new events found (HTTP 204).\n";
-    if (php_sapi_name() !== 'cli') echo "</pre>";
+    if (php_sapi_name() !== 'cli')
+        echo "</pre>";
     return 0;
 }
 
 if ($body === false || $httpCode !== 200) {
-    fwrite(STDERR, "Network Error. HTTP Status: {$httpCode}. cURL Error: {$curlErr}\n");
+    echo "Network Error. HTTP Status: {$httpCode}. cURL Error: {$curlErr}\n";
     exit(5);
 }
 
@@ -56,25 +53,28 @@ $delimiter = '|';
 $header = fgetcsv($fp, 0, $delimiter);
 
 if ($header === false) {
-    fwrite(STDERR, "Error: Invalid data structure received.\n");
+    echo "Error: Invalid data structure received.\n";
     exit(6);
 }
 
 $header[0] = ltrim($header[0], '#');
-$cols = array_map(function($c){ return strtolower(trim($c)); }, $header);
+$cols = array_map(function ($c) {
+    return strtolower(trim($c));
+}, $header);
 
-function colIndex($name, $cols) {
+function colIndex($name, $cols)
+{
     $i = array_search($name, $cols);
     return $i === false ? -1 : $i;
 }
 
 //Mapping according to the database format
-$idx_time  = colIndex('time', $cols);
-$idx_lat   = colIndex('latitude', $cols);
-$idx_lon   = colIndex('longitude', $cols);
+$idx_time = colIndex('time', $cols);
+$idx_lat = colIndex('latitude', $cols);
+$idx_lon = colIndex('longitude', $cols);
 $idx_depth = colIndex('depth/km', $cols);
-$idx_mag   = colIndex('magnitude', $cols);
-$idx_type  = colIndex('magtype', $cols);
+$idx_mag = colIndex('magnitude', $cols);
+$idx_type = colIndex('magtype', $cols);
 $idx_place = colIndex('eventlocationname', $cols);
 
 //Deleting data older than 24h
@@ -83,7 +83,7 @@ $deleteSql = "DELETE FROM emergency_events
               AND started_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 1 DAY)";
 
 if (!$mysql->query($deleteSql)) {
-    fwrite(STDERR, "Warning: Failed to clear out old data: " . $mysql->error . "\n");
+    echo "Warning: Failed to clear out old data: " . $mysql->error . "\n";
 } else {
     echo "Cleanup complete.\n";
 }
@@ -93,7 +93,9 @@ $insertSql = "INSERT INTO emergency_events (event_type, title, description, seve
               VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 $stmt = $mysql->prepare($insertSql);
 
-$inserted = 0; $skipped = 0; $errors = 0;
+$inserted = 0;
+$skipped = 0;
+$errors = 0;
 $mysql->begin_transaction();
 
 while (($row = fgetcsv($fp, 0, $delimiter)) !== false) {
@@ -105,23 +107,28 @@ while (($row = fgetcsv($fp, 0, $delimiter)) !== false) {
         continue;
     }
 
-    $lat = (float)$latRaw;
-    $lon = (float)$lonRaw;
+    $lat = (float) $latRaw;
+    $lon = (float) $lonRaw;
 
-    $timeRaw  = $idx_time >= 0 ? trim($row[$idx_time]) : '';
-    $magRaw   = $idx_mag >= 0 ? trim($row[$idx_mag]) : '';
+    $timeRaw = $idx_time >= 0 ? trim($row[$idx_time]) : '';
+    $magRaw = $idx_mag >= 0 ? trim($row[$idx_mag]) : '';
     $depthRaw = $idx_depth >= 0 ? trim($row[$idx_depth]) : '';
-    $typeRaw  = $idx_type >= 0 ? trim($row[$idx_type]) : '';
+    $typeRaw = $idx_type >= 0 ? trim($row[$idx_type]) : '';
     $placeRaw = $idx_place >= 0 ? trim($row[$idx_place]) : '';
 
     $startedAt = date('Y-m-d H:i:s', strtotime($timeRaw));
 
-    $mag = is_numeric($magRaw) ? (float)$magRaw : null;
-    if ($mag === null)  $severity = 'moderate';
-    else if ($mag < 4.0) $severity = 'low';
-    else if ($mag < 5.0) $severity = 'moderate';
-    else if ($mag < 6.0) $severity = 'high';
-    else                 $severity = 'extreme';
+    $mag = is_numeric($magRaw) ? (float) $magRaw : null;
+    if ($mag === null)
+        $severity = 'moderate';
+    else if ($mag < 4.0)
+        $severity = 'low';
+    else if ($mag < 5.0)
+        $severity = 'moderate';
+    else if ($mag < 6.0)
+        $severity = 'high';
+    else
+        $severity = 'extreme';
 
     $magText = $mag !== null ? "M{$mag}" : 'M?';
     $location = ($placeRaw !== '') ? $placeRaw : 'Romania';
@@ -142,7 +149,7 @@ while (($row = fgetcsv($fp, 0, $delimiter)) !== false) {
         }
 
         //Other SQL errors: log and count
-        fwrite(STDERR, "SQL Error: " . $e->getMessage() . "\n");
+        echo "SQL Error: " . $e->getMessage() . "\n";
         $errors++;
         continue;
     }
@@ -156,4 +163,5 @@ $stmt->close();
 
 echo "Sync Completed Successfully!\n";
 echo "New: {$inserted} | Skipped/Duplicates: {$skipped} | Errors: {$errors}\n";
-if (php_sapi_name() !== 'cli') echo "</pre>";
+if (php_sapi_name() !== 'cli')
+    echo "</pre>";

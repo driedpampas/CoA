@@ -133,7 +133,7 @@ function updateUserMarker(lat, lng, accuracy) {
 }
 
 function fetchNearestShelters(lat, lng) {
-	fetch("api/shelters/nearest?lat=" + lat + "&lng=" + lng)
+	fetch(`api/shelters/nearest?lat=${lat}&lng=${lng}`)
 		.then((response) => response.json())
 		.then((nearestShelters) => {
 			var listEl = document.querySelector("#shelterList");
@@ -148,13 +148,13 @@ function fetchNearestShelters(lat, lng) {
 			nearestShelters.forEach((s) => {
 				var dist =
 					s.distance_meters < 1000
-						? s.distance_meters + " m"
-						: (s.distance_meters / 1000).toFixed(1) + " km";
+						? `${s.distance_meters} m`
+						: `${(s.distance_meters / 1000).toFixed(1)} km`;
 				var div = document.createElement("div");
 				div.className = "shelter-item";
 				div.setAttribute("data-lat", s.latitude);
 				div.setAttribute("data-lng", s.longitude);
-				div.innerHTML = "<strong>" + s.name + "</strong><span class='badge badge-status-" + s.status + "'>" + s.status + "</span><span class='badge badge-type-" + s.shelter_type + "'>" + s.shelter_type + "</span><small>" + s.address + "</small><small>Distance: " + dist + "</small><small>Capacity: " + s.current_occupancy + " / " + s.capacity + "</small>";
+				div.innerHTML = `<strong>${s.name}</strong><span class='badge badge-status-${s.status}'>${s.status}</span><span class='badge badge-type-${s.shelter_type}'>${s.shelter_type}</span><small>${s.address}</small><small>Distance: ${dist}</small><small>Capacity: ${s.current_occupancy} / ${s.capacity}</small>`;
 				listEl.appendChild(div);
 			});
 		});
@@ -165,7 +165,7 @@ function clearRoutes() {
 }
 
 function fetchNearestRoutes(lat, lng) {
-	fetch("api/routes/nearest?lat=" + lat + "&lng=" + lng)
+	fetch(`api/routes/nearest?lat=${lat}&lng=${lng}`)
 		.then((response) => response.json())
 		.then((routes) => {
 			clearRoutes();
@@ -181,7 +181,7 @@ function fetchNearestRoutes(lat, lng) {
 				}).addTo(routesLayer);
 
 				polyline.bindPopup(
-					"<strong>" + route.name + "</strong><br>Route to: " + route.shelter_name + "<br>Duration: ~" + route.estimated_minutes + " min<br>Distance: " + route.distance_meters + " m<br>Status: <span style='color:" + (route.status === "blocked" ? "#d32f2f" : "#4caf50") + ";'>" + route.status + "</span>",
+					`<strong>${route.name}</strong><br>Route to: ${route.shelter_name}<br>Duration: ~${route.estimated_minutes} min<br>Distance: ${route.distance_meters} m<br>Status: <span style='color:${route.status === "blocked" ? "#d32f2f" : "#4caf50"};'>${route.status}</span>`,
 				);
 			});
 
@@ -198,12 +198,12 @@ function fetchNearestRoutes(lat, lng) {
 				routes.forEach((route) => {
 					var dist =
 						route.distance_from_point < 1000
-							? route.distance_from_point + " m"
-							: (route.distance_from_point / 1000).toFixed(1) + " km";
+							? `${route.distance_from_point} m`
+							: `${(route.distance_from_point / 1000).toFixed(1)} km`;
 					var div = document.createElement("div");
 					div.className = "route-item";
 					div.setAttribute("data-route-id", route.id);
-					div.innerHTML = "<strong>" + route.name + "</strong><span class='badge badge-status-" + route.status + "'>" + route.status + "</span><small>To: " + route.shelter_name + "</small><small>Duration: ~" + route.estimated_minutes + " min | " + dist + "</small>";
+					div.innerHTML = `<strong>${route.name}</strong><span class='badge badge-status-${route.status}'>${route.status}</span><small>To: ${route.shelter_name}</small><small>Duration: ~${route.estimated_minutes} min | ${dist}</small>`;
 					routeListEl.appendChild(div);
 				});
 			}
@@ -212,11 +212,14 @@ function fetchNearestRoutes(lat, lng) {
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
 	var R = 6371;
-	var dLat = (lat2 - lat1) * Math.PI / 180;
-	var dLng = (lng2 - lng1) * Math.PI / 180;
-	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-		Math.sin(dLng / 2) * Math.sin(dLng / 2);
+	var dLat = ((lat2 - lat1) * Math.PI) / 180;
+	var dLng = ((lng2 - lng1) * Math.PI) / 180;
+	var a =
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos((lat1 * Math.PI) / 180) *
+			Math.cos((lat2 * Math.PI) / 180) *
+			Math.sin(dLng / 2) *
+			Math.sin(dLng / 2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return R * c;
 }
@@ -224,9 +227,14 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
 function findNearestShelter(lat, lng) {
 	var nearest = null;
 	var nearestDist = Infinity;
-	sheltersData.forEach(function(shelter) {
+	sheltersData.forEach((shelter) => {
 		if (!shelter.latitude || !shelter.longitude) return;
-		var dist = haversineDistance(lat, lng, parseFloat(shelter.latitude), parseFloat(shelter.longitude));
+		var dist = haversineDistance(
+			lat,
+			lng,
+			parseFloat(shelter.latitude),
+			parseFloat(shelter.longitude),
+		);
 		if (dist < nearestDist) {
 			nearestDist = dist;
 			nearest = shelter;
@@ -236,18 +244,25 @@ function findNearestShelter(lat, lng) {
 }
 
 function fetchOSRMRoute(fromLat, fromLng, toLat, toLng) {
-	var url = "https://router.project-osrm.org/route/v1/driving/" +
-		fromLng + "," + fromLat + ";" + toLng + "," + toLat +
+	var url =
+		"https://router.project-osrm.org/route/v1/driving/" +
+		fromLng +
+		"," +
+		fromLat +
+		";" +
+		toLng +
+		"," +
+		toLat +
 		"?overview=full&geometries=geojson&steps=true";
 
 	fetch(url)
-		.then(function(r) { return r.json(); })
-		.then(function(data) {
+		.then((r) => r.json())
+		.then((data) => {
 			if (data.routes && data.routes.length > 0) {
 				displayOSRMRoute(data.routes[0]);
 			}
 		})
-		.catch(function(err) {
+		.catch((err) => {
 			console.error("[OSRM] Route fetch failed:", err);
 		});
 }
@@ -257,7 +272,7 @@ function displayOSRMRoute(route) {
 		map.removeLayer(osrmRouteLayer);
 	}
 
-	var coords = route.geometry.coordinates.map(function(c) {
+	var coords = route.geometry.coordinates.map((c) => {
 		return [c[1], c[0]];
 	});
 
@@ -272,8 +287,12 @@ function displayOSRMRoute(route) {
 
 	osrmRouteLayer.bindPopup(
 		"<strong>Evacuation Route (OSRM)</strong><br>" +
-		"Distance: " + distKm + " km<br>" +
-		"Estimated time: ~" + durationMin + " min"
+			"Distance: " +
+			distKm +
+			" km<br>" +
+			"Estimated time: ~" +
+			durationMin +
+			" min",
 	);
 
 	map.fitBounds(osrmRouteLayer.getBounds(), { padding: [50, 50] });
@@ -287,10 +306,15 @@ function checkEventProximity() {
 	var nearestEvent = null;
 	var nearestDist = Infinity;
 
-	eventsData.forEach(function(event) {
+	eventsData.forEach((event) => {
 		if (!event.latitude || !event.longitude) return;
 		if (event.status !== "active") return;
-		var dist = haversineDistance(userLat, userLng, parseFloat(event.latitude), parseFloat(event.longitude));
+		var dist = haversineDistance(
+			userLat,
+			userLng,
+			parseFloat(event.latitude),
+			parseFloat(event.longitude),
+		);
 		if (dist < nearestDist) {
 			nearestDist = dist;
 			nearestEvent = event;
@@ -311,7 +335,13 @@ function checkEventProximity() {
 }
 
 function triggerProximityAlert(event, distance) {
-	console.log("[Proximity] Alert triggered for:", event.title, "at", distance.toFixed(1), "km");
+	console.log(
+		"[Proximity] Alert triggered for:",
+		event.title,
+		"at",
+		distance.toFixed(1),
+		"km",
+	);
 
 	var header = document.querySelector(".dashboard-header");
 	if (header) header.classList.add("header-alert");
@@ -321,8 +351,10 @@ function triggerProximityAlert(event, distance) {
 	var nearestShelter = findNearestShelter(userLat, userLng);
 	if (nearestShelter) {
 		fetchOSRMRoute(
-			userLat, userLng,
-			parseFloat(nearestShelter.latitude), parseFloat(nearestShelter.longitude)
+			userLat,
+			userLng,
+			parseFloat(nearestShelter.latitude),
+			parseFloat(nearestShelter.longitude),
 		);
 	}
 }
@@ -341,13 +373,13 @@ function clearProximityAlert() {
 
 function pollEvents() {
 	fetch("api/events")
-		.then(function(r) { return r.json(); })
-		.then(function(data) {
+		.then((r) => r.json())
+		.then((data) => {
 			eventsData = data;
 			renderEventsOnMap();
 			checkEventProximity();
 		})
-		.catch(function(err) {
+		.catch((err) => {
 			console.warn("[Poll] Failed to fetch events:", err);
 		});
 }
@@ -362,7 +394,9 @@ function setUserLocation(lat, lng) {
 }
 
 function initMockLocation() {
-	console.log("[Location] Using mock location: Copou Park (" + MOCK_LAT + ", " + MOCK_LNG + ")");
+	console.log(
+		`[Location] Using mock location: Copou Park (${MOCK_LAT}, ${MOCK_LNG})`,
+	);
 	setUserLocation(MOCK_LAT, MOCK_LNG);
 	showLocationBanner("Mock location: Copou Park, Iasi", false);
 	hideBannerTimeout = setTimeout(hideLocationBanner, 4000);
@@ -372,20 +406,20 @@ initMockLocation();
 
 setInterval(pollEvents, 15000);
 
-document.querySelector("#locateBtn").addEventListener("click", function() {
+document.querySelector("#locateBtn").addEventListener("click", () => {
 	setUserLocation(MOCK_LAT, MOCK_LNG);
 	map.setView([MOCK_LAT, MOCK_LNG], 14);
 	showLocationBanner("Mock location: Copou Park, Iasi", false);
 	hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
 });
 
-document.querySelector("#centerOnMe").addEventListener("click", function() {
+document.querySelector("#centerOnMe").addEventListener("click", () => {
 	if (userLat !== null && userLng !== null) {
 		map.setView([userLat, userLng], 15);
 	}
 });
 
-document.querySelector("#toggleEvents").addEventListener("change", function(e) {
+document.querySelector("#toggleEvents").addEventListener("change", (e) => {
 	if (e.target.checked) {
 		eventsLayer.addTo(map);
 	} else {
@@ -393,7 +427,7 @@ document.querySelector("#toggleEvents").addEventListener("change", function(e) {
 	}
 });
 
-document.querySelector("#toggleShelters").addEventListener("change", function(e) {
+document.querySelector("#toggleShelters").addEventListener("change", (e) => {
 	if (e.target.checked) {
 		sheltersLayer.addTo(map);
 	} else {
@@ -401,7 +435,7 @@ document.querySelector("#toggleShelters").addEventListener("change", function(e)
 	}
 });
 
-document.querySelector("#toggleUser").addEventListener("change", function(e) {
+document.querySelector("#toggleUser").addEventListener("change", (e) => {
 	if (e.target.checked) {
 		userLocationLayer.addTo(map);
 	} else {
@@ -409,7 +443,7 @@ document.querySelector("#toggleUser").addEventListener("change", function(e) {
 	}
 });
 
-document.querySelector("#toggleRoutes").addEventListener("change", function(e) {
+document.querySelector("#toggleRoutes").addEventListener("change", (e) => {
 	if (e.target.checked) {
 		routesLayer.addTo(map);
 	} else {
@@ -417,7 +451,7 @@ document.querySelector("#toggleRoutes").addEventListener("change", function(e) {
 	}
 });
 
-document.addEventListener("click", function(e) {
+document.addEventListener("click", (e) => {
 	var item = e.target.closest(".event-item, .shelter-item");
 	if (!item) return;
 
@@ -433,12 +467,12 @@ var menuToggle = document.getElementById("menuToggle");
 var headerNav = document.getElementById("headerNav");
 
 if (menuToggle && headerNav) {
-	menuToggle.addEventListener("click", function() {
+	menuToggle.addEventListener("click", () => {
 		menuToggle.classList.toggle("open");
 		headerNav.classList.toggle("open");
 	});
 
-	headerNav.addEventListener("click", function(e) {
+	headerNav.addEventListener("click", (e) => {
 		if (e.target.tagName === "A") {
 			menuToggle.classList.remove("open");
 			headerNav.classList.remove("open");
@@ -463,13 +497,13 @@ function updateBadge(count) {
 }
 
 function formatTimeAgo(dateStr) {
-	var date = new Date(dateStr.replace(" ", "T") + "Z");
+	var date = new Date(`${dateStr.replace(" ", "T")}Z`);
 	var now = new Date();
 	var diff = Math.floor((now - date) / 1000);
 	if (diff < 60) return "just now";
-	if (diff < 3600) return Math.floor(diff / 60) + "m ago";
-	if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
-	return Math.floor(diff / 86400) + "d ago";
+	if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+	if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+	return `${Math.floor(diff / 86400)}d ago`;
 }
 
 function renderNotifications(notifications) {
@@ -481,39 +515,39 @@ function renderNotifications(notifications) {
 	}
 
 	notificationList.innerHTML = "";
-	notifications.forEach(function(n) {
+	notifications.forEach((n) => {
 		var div = document.createElement("div");
-		div.className = "notification-item" + (n.is_read === "0" || n.is_read === 0 ? " unread" : "");
+		div.className = `notification-item${n.is_read === "0" || n.is_read === 0 ? " unread" : ""}`;
 		div.setAttribute("data-id", n.id);
 		div.innerHTML =
-			'<div class="notification-item-title">' + n.title + '</div>' +
-			'<div class="notification-item-message">' + n.message + '</div>' +
-			'<div class="notification-item-meta">' +
-			'<span class="notification-severity notification-severity-' + n.severity + '">' + n.severity + '</span>' +
-			'<span>' + formatTimeAgo(n.created_at) + '</span>' +
-			'</div>';
+			`<div class="notification-item-title">${n.title}</div>` +
+			`<div class="notification-item-message">${n.message}</div>` +
+			`<div class="notification-item-meta">` +
+			`<span class="notification-severity notification-severity-${n.severity}">${n.severity}</span>` +
+			`<span>${formatTimeAgo(n.created_at)}</span>` +
+			`</div>`;
 		notificationList.appendChild(div);
 	});
 }
 
 function fetchNotifications() {
 	fetch("api/notifications")
-		.then(function(r) { return r.json(); })
-		.then(function(data) {
+		.then((r) => r.json())
+		.then((data) => {
 			renderNotifications(data);
 		});
 }
 
 function fetchUnreadCount() {
 	fetch("api/notifications/unread-count")
-		.then(function(r) { return r.json(); })
-		.then(function(data) {
+		.then((r) => r.json())
+		.then((data) => {
 			updateBadge(data.count || 0);
 		});
 }
 
 if (notificationBell && notificationDropdown) {
-	notificationBell.addEventListener("click", function(e) {
+	notificationBell.addEventListener("click", (e) => {
 		e.stopPropagation();
 		var isHidden = notificationDropdown.classList.contains("hidden");
 		notificationDropdown.classList.toggle("hidden");
@@ -522,17 +556,21 @@ if (notificationBell && notificationDropdown) {
 		}
 	});
 
-	document.addEventListener("click", function(e) {
-		if (!notificationDropdown.contains(e.target) && e.target !== notificationBell && !notificationBell.contains(e.target)) {
+	document.addEventListener("click", (e) => {
+		if (
+			!notificationDropdown.contains(e.target) &&
+			e.target !== notificationBell &&
+			!notificationBell.contains(e.target)
+		) {
 			notificationDropdown.classList.add("hidden");
 		}
 	});
 
 	if (markAllReadBtn) {
-		markAllReadBtn.addEventListener("click", function() {
+		markAllReadBtn.addEventListener("click", () => {
 			fetch("api/notifications/read-all", { method: "POST" })
-				.then(function(r) { return r.json(); })
-				.then(function() {
+				.then((r) => r.json())
+				.then(() => {
 					updateBadge(0);
 					fetchNotifications();
 				});
@@ -540,15 +578,15 @@ if (notificationBell && notificationDropdown) {
 	}
 
 	if (notificationList) {
-		notificationList.addEventListener("click", function(e) {
+		notificationList.addEventListener("click", (e) => {
 			var item = e.target.closest(".notification-item");
 			if (!item) return;
 			var id = item.getAttribute("data-id");
 			if (!id) return;
 
-			fetch("api/notifications/" + id + "/read", { method: "POST" })
-				.then(function(r) { return r.json(); })
-				.then(function() {
+			fetch(`api/notifications/${id}/read`, { method: "POST" })
+				.then((r) => r.json())
+				.then(() => {
 					item.classList.remove("unread");
 					fetchUnreadCount();
 				});
