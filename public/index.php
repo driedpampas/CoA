@@ -1,9 +1,10 @@
 <?php
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routeLevels = array_values(array_filter(explode('/', ltrim($uri, '/')), 'strlen'));
-$route = implode('/', $routeLevels);
+$routeRoot = $routeLevels[0] ?? '';
+$routeLeaf = preg_replace('/\.php$/', '', $routeLevels[1] ?? '');
 
-switch ($routeLevels[0] ?? '') {
+switch ($routeRoot) {
     case 'dashboard':
     case 'api':
     case 'cap-feed':
@@ -11,11 +12,15 @@ switch ($routeLevels[0] ?? '') {
         break;
 
     case 'admin':
-        $sub = $routeLevels[1] ?? '';
-        if ($sub === 'submit_event') {
+    case 'administrator':
+        if ($routeLeaf === 'submit_event') {
             require __DIR__ . '/../administrator/submit_event.php';
-        } elseif ($sub === 'submit_shelter') {
+        } elseif ($routeLeaf === 'submit_shelter') {
             require __DIR__ . '/../administrator/submit_shelter.php';
+        } elseif ($routeLeaf === 'manage_event') {
+            require __DIR__ . '/../administrator/manage_event.php';
+        } elseif ($routeLeaf === 'manage_shelter') {
+            require __DIR__ . '/../administrator/manage_shelter.php';
         } else {
             require __DIR__ . '/../administrator/index.php';
         }
