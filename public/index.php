@@ -3,6 +3,7 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $routeLevels = array_values(array_filter(explode('/', ltrim($uri, '/')), 'strlen'));
 $routeRoot = $routeLevels[0] ?? '';
 $routeLeaf = preg_replace('/\.php$/', '', $routeLevels[1] ?? '');
+$route = $routeRoot;
 
 switch ($routeRoot) {
     case 'dashboard':

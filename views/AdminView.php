@@ -155,7 +155,7 @@
     </div>
 
     <div class="management-tables">
-        <section class="panel execution-panel">
+        <section id="manage-events" class="panel execution-panel">
             <h2>Manage Disaster Events</h2>
             <div class="table-responsive">
                 <table class="dashboard-table">
@@ -234,9 +234,22 @@
                     </tbody>
                 </table>
             </div>
+            <?php if ($eventTotalPages > 1): ?>
+                <div class="pagination-bar">
+                    <span>Page <?= $eventsPage ?> of <?= $eventTotalPages ?></span>
+                    <div class="pagination-links">
+                        <?php if ($eventsPage > 1): ?>
+                            <a href="?events_page=<?= $eventsPage - 1 ?>&shelters_page=<?= $sheltersPage ?>#manage-events">Previous</a>
+                        <?php endif; ?>
+                        <?php if ($eventsPage < $eventTotalPages): ?>
+                            <a href="?events_page=<?= $eventsPage + 1 ?>&shelters_page=<?= $sheltersPage ?>#manage-events">Next</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </section>
 
-        <section class="panel execution-panel">
+        <section id="manage-shelters" class="panel execution-panel">
             <h2>Manage Shelter Locations</h2>
             <div class="table-responsive">
                 <table class="dashboard-table">
@@ -309,6 +322,19 @@
                     </tbody>
                 </table>
             </div>
+            <?php if ($shelterTotalPages > 1): ?>
+                <div class="pagination-bar">
+                    <span>Page <?= $sheltersPage ?> of <?= $shelterTotalPages ?></span>
+                    <div class="pagination-links">
+                        <?php if ($sheltersPage > 1): ?>
+                            <a href="?events_page=<?= $eventsPage ?>&shelters_page=<?= $sheltersPage - 1 ?>#manage-shelters">Previous</a>
+                        <?php endif; ?>
+                        <?php if ($sheltersPage < $shelterTotalPages): ?>
+                            <a href="?events_page=<?= $eventsPage ?>&shelters_page=<?= $sheltersPage + 1 ?>#manage-shelters">Next</a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
         </section>
     </div>
 </main>
