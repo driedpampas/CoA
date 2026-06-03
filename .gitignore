@@ -7,3 +7,4 @@ vendor/
 AGENTS.md
 config/resend.php
 .htaccess
+.kilo/

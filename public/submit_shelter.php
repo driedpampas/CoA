@@ -1,2 +1,2 @@
 <?php
-require __DIR__ . '/../administrator/submit_shelter.php';
+require __DIR__ . '/../admin/submit_shelter.php';

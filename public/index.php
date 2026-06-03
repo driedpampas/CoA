@@ -7,23 +7,21 @@ $route = $routeRoot;
 
 switch ($routeRoot) {
     case 'dashboard':
-    case 'api':
     case 'cap-feed':
-        require __DIR__ . '/../controllers/PublicController.php';
+        require __DIR__ . '/controllers/PublicController.php';
         break;
 
     case 'admin':
-    case 'administrator':
         if ($routeLeaf === 'submit_event') {
-            require __DIR__ . '/../administrator/submit_event.php';
+            require __DIR__ . '/../admin/submit_event.php';
         } elseif ($routeLeaf === 'submit_shelter') {
-            require __DIR__ . '/../administrator/submit_shelter.php';
+            require __DIR__ . '/../admin/submit_shelter.php';
         } elseif ($routeLeaf === 'manage_event') {
-            require __DIR__ . '/../administrator/manage_event.php';
+            require __DIR__ . '/../admin/manage_event.php';
         } elseif ($routeLeaf === 'manage_shelter') {
-            require __DIR__ . '/../administrator/manage_shelter.php';
+            require __DIR__ . '/../admin/manage_shelter.php';
         } else {
-            require __DIR__ . '/../administrator/index.php';
+            require __DIR__ . '/../admin/index.php';
         }
         break;
 
@@ -34,7 +32,7 @@ switch ($routeRoot) {
     case 'check-email':
     case 'forgot-password':
     case 'reset-password':
-        require __DIR__ . '/../controllers/AccountsController.php';
+        require __DIR__ . '/controllers/AccountsController.php';
         break;
 
     default:

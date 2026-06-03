@@ -331,4 +331,4 @@ function adminUrl(array $overrides = []): string
     return '/admin?' . http_build_query(array_merge($adminQueryBase, $overrides));
 }
 
-include __DIR__ . '/../views/AdminView.php';
+include __DIR__ . '/views/AdminView.php';

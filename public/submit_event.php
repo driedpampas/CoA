@@ -1,2 +1,2 @@
 <?php
-require __DIR__ . '/../administrator/submit_event.php';
+require __DIR__ . '/../admin/submit_event.php';

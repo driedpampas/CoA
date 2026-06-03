@@ -8,8 +8,8 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Models\\": "models/",
-			"Handlers\\": "handlers/"
+			"Models\\": "api/models/",
+			"Handlers\\": "api/handlers/"
 		}
 	}
 }
