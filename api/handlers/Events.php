@@ -4,7 +4,7 @@ namespace Handlers;
 
 class Events
 {
-    public static function handle($eventModel)
+    public static function handle($eventModel, $accountModel, $notificationModel, $userId = null)
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             header('Allow: GET');
@@ -12,6 +12,7 @@ class Events
         }
 
         [$ok, $events] = $eventModel->getActive();
+
         \sendJsonResponse($ok ? $events : []);
     }
 }

@@ -63,6 +63,32 @@ class Account
         return $row['role'] ?? 'user';
     }
 
+    public function getUserId($username)
+    {
+        if (!($stmt = $this->mysql->prepare("SELECT id FROM auth WHERE user = ?"))) {
+            return null;
+        }
+
+        if (!$stmt->bind_param('s', $username)) {
+            return null;
+        }
+
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return null;
+        }
+
+        if ($result->num_rows === 0) {
+            return null;
+        }
+
+        $row = $result->fetch_assoc();
+        return isset($row['id']) ? (int) $row['id'] : null;
+    }
+
     public function resolveUsername($login)
     {
         if (str_contains($login, '@')) {
@@ -261,6 +287,100 @@ class Account
 
         $row = $result->fetch_assoc();
         return $row['email'];
+    }
+
+    public function updateLocation($userId, $latitude, $longitude)
+    {
+        if (!($stmt = $this->mysql->prepare(
+            "UPDATE auth
+             SET last_latitude = ?, last_longitude = ?, last_location_updated_at = NOW()
+             WHERE id = ?"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        $userId = (int) $userId;
+        if (!$stmt->bind_param('ddi', $latitude, $longitude, $userId)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        return [true, true];
+    }
+
+    public function getLocationByUserId($userId)
+    {
+        if (!($stmt = $this->mysql->prepare(
+            "SELECT last_latitude, last_longitude
+             FROM auth
+             WHERE id = ?"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        $userId = (int) $userId;
+        if (!$stmt->bind_param('i', $userId)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return [false, 'Eroare la preluarea rezultatelor.'];
+        }
+
+        $row = $result->fetch_assoc();
+        if (!$row || $row['last_latitude'] === null || $row['last_longitude'] === null) {
+            return [true, null];
+        }
+
+        return [true, [
+            'latitude' => (float) $row['last_latitude'],
+            'longitude' => (float) $row['last_longitude'],
+        ]];
+    }
+
+    public function getUsersInRadius($latitude, $longitude, $radius = 1)
+    {
+        if (!($stmt = $this->mysql->prepare(
+            "SELECT id
+             FROM auth
+             WHERE last_latitude IS NOT NULL
+               AND last_longitude IS NOT NULL
+               AND SQRT(
+                    POW(last_latitude - ?, 2) +
+                    POW(last_longitude - ?, 2)
+               ) <= ?"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        $latitude = (float) $latitude;
+        $longitude = (float) $longitude;
+        $radius = (float) $radius;
+        if (!$stmt->bind_param('ddd', $latitude, $longitude, $radius)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return [false, 'Eroare la preluarea rezultatelor.'];
+        }
+
+        $ids = [];
+        while ($row = $result->fetch_assoc()) {
+            $ids[] = (int) $row['id'];
+        }
+
+        return [true, $ids];
     }
 
     public function setResetToken($email)

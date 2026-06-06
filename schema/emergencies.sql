@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0; 
 
-DROP TABLE IF EXISTS notifications;
+-- DROP TABLE IF EXISTS notifications; -- left commented to avoid tablespace/import conflicts; manage tablespaces manually if needed
 DROP TABLE IF EXISTS shelters;
 DROP TABLE IF EXISTS evacuation_routes;
 DROP TABLE IF EXISTS emergency_events;
@@ -70,6 +70,7 @@ PRIMARY KEY (id));
 ALTER TABLE emergency_events ADD UNIQUE KEY unique_earthquake (event_type, started_at, latitude, longitude);
 
 CREATE TABLE IF NOT EXISTS auth (
+    id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
     user VARCHAR(32) NOT NULL,
     pass VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -80,12 +81,14 @@ CREATE TABLE IF NOT EXISTS auth (
     reset_token VARCHAR(64) DEFAULT NULL,
     reset_expires DATETIME DEFAULT NULL,
     PRIMARY KEY (user),
+    UNIQUE KEY idx_auth_id (id),
     INDEX idx_verification_token (verification_token),
     INDEX idx_reset_token (reset_token)
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
     id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
+    user_id         INT UNSIGNED        DEFAULT NULL,
     title           VARCHAR(255)        NOT NULL,
     message         TEXT                NOT NULL,
     type            ENUM('event', 'shelter', 'system') NOT NULL DEFAULT 'system',
@@ -94,6 +97,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     is_read         TINYINT(1)          NOT NULL DEFAULT 0,
     created_at      TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
+    INDEX idx_notifications_user (user_id),
     INDEX idx_notifications_read (is_read),
-    INDEX idx_notifications_created (created_at)
+    INDEX idx_notifications_created (created_at),
+    CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES auth(id)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );

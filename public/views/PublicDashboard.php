@@ -144,6 +144,8 @@
         var eventsData = <?php echo json_encode($events, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         var sheltersData = <?php echo json_encode($shelters, JSON_HEX_TAG | JSON_HEX_AMP); ?>;
         var unreadNotificationCount = <?php echo (int) $unreadCount; ?>;
+        var isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+        var currentUserId = <?php echo $currentUserId !== null ? (int) $currentUserId : 'null'; ?>;
     </script>
     <script src="dashboard.js"></script>
 </body>

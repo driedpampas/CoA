@@ -45,6 +45,20 @@ if ($colRes && $colRes->num_rows === 0) {
 // Ensure admin user has admin role (idempotent)
 $mysql->query("UPDATE auth SET role='admin' WHERE user='admin'");
 
+// Ensure numeric user ids exist for per-user notifications
+$userIdCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'id'");
+if ($userIdCol && $userIdCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE FIRST");
+}
+
+// Ensure user location fields exist for area-targeted notifications
+$locationLatCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'last_latitude'");
+if ($locationLatCol && $locationLatCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN last_latitude DECIMAL(10, 7) DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD COLUMN last_longitude DECIMAL(10, 7) DEFAULT NULL");
+    $mysql->query("ALTER TABLE auth ADD COLUMN last_location_updated_at TIMESTAMP NULL DEFAULT NULL");
+}
+
 // Ensure email verification and password reset columns exist
 $emailVerifiedCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'email_verified'");
 if ($emailVerifiedCol && $emailVerifiedCol->num_rows === 0) {
@@ -59,21 +73,12 @@ if ($emailVerifiedCol && $emailVerifiedCol->num_rows === 0) {
     $mysql->query("UPDATE auth SET email_verified = 1 WHERE user = 'admin'");
 }
 
-$notifTable = $mysql->query("SHOW TABLES LIKE 'notifications'");
-if ($notifTable && $notifTable->num_rows === 0) {
-    $mysql->query("CREATE TABLE IF NOT EXISTS notifications (
-        id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
-        title           VARCHAR(255)        NOT NULL,
-        message         TEXT                NOT NULL,
-        type            ENUM('event', 'shelter', 'system') NOT NULL DEFAULT 'system',
-        severity        ENUM('info', 'warning', 'critical') NOT NULL DEFAULT 'info',
-        reference_id    INT UNSIGNED        DEFAULT NULL,
-        is_read         TINYINT(1)          NOT NULL DEFAULT 0,
-        created_at      TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        INDEX idx_notifications_read (is_read),
-        INDEX idx_notifications_created (created_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Ensure notifications point at individual users instead of a global inbox.
+$notificationsUserCol = $mysql->query("SHOW COLUMNS FROM notifications LIKE 'user_id'");
+if ($notificationsUserCol && $notificationsUserCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE notifications ADD COLUMN user_id INT UNSIGNED DEFAULT NULL AFTER id");
+    $mysql->query("ALTER TABLE notifications ADD INDEX idx_notifications_user (user_id)");
+    $mysql->query("ALTER TABLE notifications ADD CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES auth(id) ON UPDATE CASCADE ON DELETE CASCADE");
 }
 
 $uaicCheck = $mysql->query("SELECT id FROM shelters WHERE name = 'Universitatea Alexandru Ioan Cuza' LIMIT 1");

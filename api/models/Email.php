@@ -8,10 +8,25 @@ class Email
 {
     private static ?Resend\Client $client = null;
 
-    private static function getClient(): Resend\Client
+    private static function getConfig(): ?array
     {
+        $path = __DIR__ . '/../../config/resend.php';
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $config = require $path;
+        return is_array($config) ? $config : null;
+    }
+
+    private static function getClient(): ?Resend\Client
+    {
+        $config = self::getConfig();
+        if ($config === null || empty($config['api_key'])) {
+            return null;
+        }
+
         if (self::$client === null) {
-            $config = require __DIR__ . '/../config/resend.php';
             self::$client = Resend::client($config['api_key']);
         }
         return self::$client;
@@ -21,17 +36,27 @@ class Email
     {
         extract($vars);
         ob_start();
-        include __DIR__ . '/../views/emails/' . $view;
+        include __DIR__ . '/../../public/views/emails/' . $view;
         return ob_get_clean();
     }
 
     public static function sendVerificationEmail(string $to, string $username, string $token): bool
     {
-        $config = require __DIR__ . '/../config/resend.php';
+        $config = self::getConfig();
+        if ($config === null || empty($config['app_url']) || empty($config['from'])) {
+            error_log('Resend verification email skipped: missing config.');
+            return false;
+        }
+
         $url = $config['app_url'] . '/verify?token=' . urlencode($token);
+        $client = self::getClient();
+        if ($client === null) {
+            error_log('Resend verification email skipped: client unavailable.');
+            return false;
+        }
 
         try {
-            self::getClient()->emails->send([
+            $client->emails->send([
                 'from' => $config['from'],
                 'to' => $to,
                 'subject' => 'Verify your COA account',
@@ -46,11 +71,21 @@ class Email
 
     public static function sendPasswordResetEmail(string $to, string $username, string $token): bool
     {
-        $config = require __DIR__ . '/../config/resend.php';
+        $config = self::getConfig();
+        if ($config === null || empty($config['app_url']) || empty($config['from'])) {
+            error_log('Resend password reset email skipped: missing config.');
+            return false;
+        }
+
         $url = $config['app_url'] . '/reset-password?token=' . urlencode($token);
+        $client = self::getClient();
+        if ($client === null) {
+            error_log('Resend password reset email skipped: client unavailable.');
+            return false;
+        }
 
         try {
-            self::getClient()->emails->send([
+            $client->emails->send([
                 'from' => $config['from'],
                 'to' => $to,
                 'subject' => 'Reset your COA password',
@@ -65,11 +100,21 @@ class Email
 
     public static function sendWelcomeEmail(string $to, string $username): bool
     {
-        $config = require __DIR__ . '/../config/resend.php';
+        $config = self::getConfig();
+        if ($config === null || empty($config['app_url']) || empty($config['from'])) {
+            error_log('Resend welcome email skipped: missing config.');
+            return false;
+        }
+
         $loginUrl = $config['app_url'] . '/login';
+        $client = self::getClient();
+        if ($client === null) {
+            error_log('Resend welcome email skipped: client unavailable.');
+            return false;
+        }
 
         try {
-            self::getClient()->emails->send([
+            $client->emails->send([
                 'from' => $config['from'],
                 'to' => $to,
                 'subject' => 'Welcome to COA',

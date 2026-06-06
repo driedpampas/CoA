@@ -14,7 +14,12 @@ var osrmRouteLayer = null;
 
 var MOCK_LAT = 47.1835;
 var MOCK_LNG = 27.5644;
-var PROXIMITY_RADIUS_KM = 25;
+var PROXIMITY_RADIUS_UNITS = 1;
+var serverNotificationsData = [];
+var serverUnreadCount = 0;
+var liveNotificationsStorageKey =
+	currentUserId !== null ? `coa-live-notifications-${currentUserId}` : null;
+var liveNotificationsData = getNotificationStorage();
 
 function getMarkerColor(eventType) {
 	var colors = {
@@ -224,6 +229,12 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
 	return R * c;
 }
 
+function coordinateDistance(lat1, lng1, lat2, lng2) {
+	var dLat = lat2 - lat1;
+	var dLng = lng2 - lng1;
+	return Math.sqrt(dLat * dLat + dLng * dLng);
+}
+
 function findNearestShelter(lat, lng) {
 	var nearest = null;
 	var nearestDist = Infinity;
@@ -309,7 +320,7 @@ function checkEventProximity() {
 	eventsData.forEach((event) => {
 		if (!event.latitude || !event.longitude) return;
 		if (event.status !== "active") return;
-		var dist = haversineDistance(
+		var dist = coordinateDistance(
 			userLat,
 			userLng,
 			parseFloat(event.latitude),
@@ -321,7 +332,7 @@ function checkEventProximity() {
 		}
 	});
 
-	if (nearestEvent && nearestDist <= PROXIMITY_RADIUS_KM) {
+	if (nearestEvent && nearestDist <= PROXIMITY_RADIUS_UNITS) {
 		if (!proximityActive) {
 			proximityActive = true;
 			triggerProximityAlert(nearestEvent, nearestDist);
@@ -340,7 +351,7 @@ function triggerProximityAlert(event, distance) {
 		event.title,
 		"at",
 		distance.toFixed(1),
-		"km",
+		"units",
 	);
 
 	var header = document.querySelector(".dashboard-header");
@@ -357,6 +368,163 @@ function triggerProximityAlert(event, distance) {
 			parseFloat(nearestShelter.longitude),
 		);
 	}
+}
+
+function getNotificationStorage() {
+	if (!liveNotificationsStorageKey) return [];
+
+	try {
+		var raw = localStorage.getItem(liveNotificationsStorageKey);
+		var parsed = raw ? JSON.parse(raw) : [];
+		return Array.isArray(parsed) ? parsed : [];
+	} catch (err) {
+		console.warn("[Notifications] Failed to load live alerts:", err);
+		return [];
+	}
+}
+
+function saveNotificationStorage(notifications) {
+	if (!liveNotificationsStorageKey) return;
+
+	try {
+		localStorage.setItem(liveNotificationsStorageKey, JSON.stringify(notifications));
+	} catch (err) {
+		console.warn("[Notifications] Failed to persist live alerts:", err);
+	}
+}
+
+function formatLocalTimestamp(date) {
+	return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
+function mapSeverityToNotificationSeverity(severity) {
+	if (severity === "extreme") return "critical";
+	if (severity === "high") return "warning";
+	if (severity === "moderate") return "warning";
+	return "info";
+}
+
+function getNearbyEventDistance(event) {
+	if (userLat === null || userLng === null) return null;
+	if (!event || event.latitude === null || event.longitude === null) return null;
+
+	return coordinateDistance(
+		userLat,
+		userLng,
+		parseFloat(event.latitude),
+		parseFloat(event.longitude),
+	);
+}
+
+function getLiveNotificationKey(event) {
+	return event && event.id ? `event-${event.id}` : null;
+}
+
+function getLiveUnreadCount() {
+	return liveNotificationsData.filter((notification) => notification.is_read === 0 || notification.is_read === "0").length;
+}
+
+function updateNotificationBadge() {
+	if (!notificationBadge) return;
+	var total = serverUnreadCount + getLiveUnreadCount();
+	notificationBadge.textContent = total;
+	if (total > 0) {
+		notificationBadge.classList.remove("hidden");
+	} else {
+		notificationBadge.classList.add("hidden");
+	}
+}
+
+function buildLiveNotification(event, distance) {
+	return {
+		id: `live-${event.id}`,
+		source: "live",
+		user_id: currentUserId,
+		title: `${event.event_type} nearby`,
+		message:
+			`${event.title} happened within ${distance.toFixed(1)} units of your location.` +
+			(event.description ? ` ${event.description}` : ""),
+		type: "event",
+		severity: mapSeverityToNotificationSeverity(event.severity),
+		reference_id: event.id,
+		is_read: 0,
+		created_at: formatLocalTimestamp(new Date()),
+	};
+}
+
+function syncLiveNotificationsFromEvents() {
+	if (!isLoggedIn || userLat === null || userLng === null || !eventsData || eventsData.length === 0) {
+		updateNotificationBadge();
+		return;
+	}
+
+	var changed = false;
+
+	eventsData.forEach((event) => {
+		if (!event || event.status !== "active") return;
+		if (event.latitude === null || event.longitude === null) return;
+
+		var distance = getNearbyEventDistance(event);
+		if (distance === null || distance > PROXIMITY_RADIUS_UNITS) return;
+
+		var eventKey = getLiveNotificationKey(event);
+		if (!eventKey) return;
+
+		var existing = liveNotificationsData.find((notification) => {
+			return notification.reference_id === event.id || notification.id === `live-${event.id}`;
+		});
+
+		if (existing) return;
+
+		liveNotificationsData.unshift(buildLiveNotification(event, distance));
+		changed = true;
+	});
+
+	if (changed) {
+		saveNotificationStorage(liveNotificationsData);
+	}
+
+	updateNotificationBadge();
+}
+
+function normalizeNotification(notification) {
+	return {
+		id: notification.id,
+		source: notification.source || "server",
+		user_id: notification.user_id || currentUserId,
+		title: notification.title,
+		message: notification.message,
+		type: notification.type || "system",
+		severity: notification.severity || "info",
+		reference_id: notification.reference_id || null,
+		is_read: notification.is_read,
+		created_at: notification.created_at,
+	};
+}
+
+function getCombinedNotifications() {
+	var merged = [];
+	var seenEventKeys = {};
+
+	serverNotificationsData.forEach((notification) => {
+		var normalized = normalizeNotification(notification);
+		if (normalized.type === "event" && normalized.reference_id !== null) {
+			seenEventKeys[`event-${normalized.reference_id}`] = true;
+		}
+		merged.push(normalized);
+	});
+
+	liveNotificationsData.forEach((notification) => {
+		var liveKey = `event-${notification.reference_id}`;
+		if (seenEventKeys[liveKey]) return;
+		merged.push(normalizeNotification(notification));
+	});
+
+	merged.sort((a, b) => {
+		return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+	});
+
+	return merged;
 }
 
 function clearProximityAlert() {
@@ -377,6 +545,7 @@ function pollEvents() {
 		.then((data) => {
 			eventsData = data;
 			renderEventsOnMap();
+			syncLiveNotificationsFromEvents();
 			checkEventProximity();
 		})
 		.catch((err) => {
@@ -390,7 +559,26 @@ function setUserLocation(lat, lng) {
 	updateUserMarker(lat, lng, 50);
 	fetchNearestShelters(lat, lng);
 	fetchNearestRoutes(lat, lng);
+	syncLiveNotificationsFromEvents();
 	checkEventProximity();
+	pushUserLocation(lat, lng);
+}
+
+function pushUserLocation(lat, lng) {
+	if (!isLoggedIn) return;
+
+	fetch("api/auth/update-location", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			latitude: lat,
+			longitude: lng,
+		}),
+	}).catch((err) => {
+		console.warn("[Location] Failed to sync user location:", err);
+	});
 }
 
 function initMockLocation() {
@@ -402,15 +590,39 @@ function initMockLocation() {
 	hideBannerTimeout = setTimeout(hideLocationBanner, 4000);
 }
 
-initMockLocation();
+function initBrowserLocation(forceFallback) {
+	if (!navigator.geolocation) {
+		if (forceFallback) {
+			initMockLocation();
+		}
+		return;
+	}
+
+	showLocationBanner("Detecting your location...", false);
+
+	navigator.geolocation.getCurrentPosition(
+		(position) => {
+			setUserLocation(position.coords.latitude, position.coords.longitude);
+			map.setView([position.coords.latitude, position.coords.longitude], 14);
+			showLocationBanner("Live location detected", false);
+			hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
+		},
+		(error) => {
+			console.warn("[Location] Browser geolocation failed:", error);
+			if (forceFallback) {
+				initMockLocation();
+			}
+		},
+		{ enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+	);
+}
+
+initBrowserLocation(true);
 
 setInterval(pollEvents, 15000);
 
 document.querySelector("#locateBtn").addEventListener("click", () => {
-	setUserLocation(MOCK_LAT, MOCK_LNG);
-	map.setView([MOCK_LAT, MOCK_LNG], 14);
-	showLocationBanner("Mock location: Copou Park, Iasi", false);
-	hideBannerTimeout = setTimeout(hideLocationBanner, 3000);
+	initBrowserLocation(true);
 });
 
 document.querySelector("#centerOnMe").addEventListener("click", () => {
@@ -486,16 +698,6 @@ var notificationList = document.getElementById("notificationList");
 var notificationBadge = document.getElementById("notificationBadge");
 var markAllReadBtn = document.getElementById("markAllRead");
 
-function updateBadge(count) {
-	if (!notificationBadge) return;
-	notificationBadge.textContent = count;
-	if (count > 0) {
-		notificationBadge.classList.remove("hidden");
-	} else {
-		notificationBadge.classList.add("hidden");
-	}
-}
-
 function formatTimeAgo(dateStr) {
 	var date = new Date(`${dateStr.replace(" ", "T")}Z`);
 	var now = new Date();
@@ -519,6 +721,7 @@ function renderNotifications(notifications) {
 		var div = document.createElement("div");
 		div.className = `notification-item${n.is_read === "0" || n.is_read === 0 ? " unread" : ""}`;
 		div.setAttribute("data-id", n.id);
+		div.setAttribute("data-source", n.source || "server");
 		div.innerHTML =
 			`<div class="notification-item-title">${n.title}</div>` +
 			`<div class="notification-item-message">${n.message}</div>` +
@@ -534,7 +737,9 @@ function fetchNotifications() {
 	fetch("api/notifications")
 		.then((r) => r.json())
 		.then((data) => {
-			renderNotifications(data);
+			serverNotificationsData = Array.isArray(data) ? data : [];
+			renderNotifications(getCombinedNotifications());
+			updateNotificationBadge();
 		});
 }
 
@@ -542,9 +747,14 @@ function fetchUnreadCount() {
 	fetch("api/notifications/unread-count")
 		.then((r) => r.json())
 		.then((data) => {
-			updateBadge(data.count || 0);
+			serverUnreadCount = data.count || 0;
+			updateNotificationBadge();
 		});
 }
+
+updateNotificationBadge();
+fetchUnreadCount();
+syncLiveNotificationsFromEvents();
 
 if (notificationBell && notificationDropdown) {
 	notificationBell.addEventListener("click", (e) => {
@@ -571,8 +781,13 @@ if (notificationBell && notificationDropdown) {
 			fetch("api/notifications/read-all", { method: "POST" })
 				.then((r) => r.json())
 				.then(() => {
-					updateBadge(0);
-					fetchNotifications();
+					serverUnreadCount = 0;
+					liveNotificationsData = liveNotificationsData.map((notification) => {
+						return Object.assign({}, notification, { is_read: 1 });
+					});
+					saveNotificationStorage(liveNotificationsData);
+					renderNotifications(getCombinedNotifications());
+					updateNotificationBadge();
 				});
 		});
 	}
@@ -583,11 +798,25 @@ if (notificationBell && notificationDropdown) {
 			if (!item) return;
 			var id = item.getAttribute("data-id");
 			if (!id) return;
+			var source = item.getAttribute("data-source") || "server";
+
+			if (source === "live") {
+				liveNotificationsData = liveNotificationsData.map((notification) => {
+					if (notification.id === id) {
+						return Object.assign({}, notification, { is_read: 1 });
+					}
+					return notification;
+				});
+				saveNotificationStorage(liveNotificationsData);
+				renderNotifications(getCombinedNotifications());
+				updateNotificationBadge();
+				return;
+			}
 
 			fetch(`api/notifications/${id}/read`, { method: "POST" })
 				.then((r) => r.json())
 				.then(() => {
-					item.classList.remove("unread");
+					fetchNotifications();
 					fetchUnreadCount();
 				});
 		});

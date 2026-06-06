@@ -94,23 +94,4 @@ if (!$ok) {
     respondAdminSubmit(['success' => false, 'error' => 'Database insert failed: ' . $error], 500);
 }
 
-try {
-    $notifModel = new \Models\Notification($mysql);
-    $severityMap = [
-        'low' => 'info',
-        'moderate' => 'warning',
-        'high' => 'warning',
-        'extreme' => 'critical',
-    ];
-    $notifSeverity = $severityMap[$severity] ?? 'info';
-    $notifModel->create(
-        'New ' . $event_type . ' event',
-        $title . ($description !== '' ? ' - ' . mb_strimwidth($description, 0, 120, '...') : ''),
-        'event',
-        $notifSeverity,
-        $eventId
-    );
-} catch (\Throwable $e) {
-}
-
 respondAdminSubmit(['success' => true, 'id' => $eventId], 200, true);

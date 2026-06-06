@@ -36,6 +36,7 @@ function login($login, $password)
         $_SESSION["isLoggedIn"] = true;
         $_SESSION["username"] = $username;
         $_SESSION["role"] = $userModel->getRole($username) ?? 'user';
+        $_SESSION["user_id"] = $userModel->getUserId($username);
         setcookie("autologin", "1", time() + 3600, "/");
         header("Location: dashboard");
         exit;

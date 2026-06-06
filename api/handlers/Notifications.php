@@ -4,7 +4,7 @@ namespace Handlers;
 
 class Notifications
 {
-    public static function handle($notificationModel, $action, $sub = '')
+    public static function handle($notificationModel, $action, $sub = '', $userId = null)
     {
         if ($action === 'unread') {
             if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
@@ -12,7 +12,7 @@ class Notifications
                 \sendJsonResponse(['error' => 'Method not allowed.'], 405);
             }
 
-            [$ok, $notifications] = $notificationModel->getUnread();
+            [$ok, $notifications] = $notificationModel->getUnread($userId);
             \sendJsonResponse($ok ? $notifications : []);
         }
 
@@ -22,7 +22,7 @@ class Notifications
                 \sendJsonResponse(['error' => 'Method not allowed.'], 405);
             }
 
-            [$ok, $count] = $notificationModel->getUnreadCount();
+            [$ok, $count] = $notificationModel->getUnreadCount($userId);
             \sendJsonResponse(['count' => $ok ? $count : 0]);
         }
 
@@ -32,7 +32,11 @@ class Notifications
                 \sendJsonResponse(['error' => 'Method not allowed.'], 405);
             }
 
-            [$ok, $updated] = $notificationModel->markAllAsRead();
+            if ($userId === null) {
+                \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+            }
+
+            [$ok, $updated] = $notificationModel->markAllAsRead($userId);
             \sendJsonResponse(['ok' => $ok, 'updated' => $updated]);
         }
 
@@ -45,7 +49,11 @@ class Notifications
                     \sendJsonResponse(['error' => 'Method not allowed.'], 405);
                 }
 
-                [$ok, $found] = $notificationModel->markAsRead($id);
+                if ($userId === null) {
+                    \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+                }
+
+                [$ok, $found] = $notificationModel->markAsRead($userId, $id);
                 \sendJsonResponse(['ok' => $ok, 'updated' => $found]);
             }
 
@@ -57,7 +65,7 @@ class Notifications
             \sendJsonResponse(['error' => 'Method not allowed.'], 405);
         }
 
-        [$ok, $notifications] = $notificationModel->getAll();
+        [$ok, $notifications] = $notificationModel->getAll($userId);
         \sendJsonResponse($ok ? $notifications : []);
     }
 }

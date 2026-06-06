@@ -25,6 +25,9 @@ class Auth
             case 'forgot-password':
                 self::forgotPassword($accountModel);
                 break;
+            case 'update-location':
+                self::updateLocation($accountModel);
+                break;
             default:
                 \sendJsonResponse(['error' => 'Not found.'], 404);
                 break;
@@ -62,6 +65,7 @@ class Auth
             $_SESSION['isLoggedIn'] = true;
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $accountModel->getRole($username) ?? 'user';
+            $_SESSION['user_id'] = $accountModel->getUserId($username);
             setcookie('autologin', '1', time() + 3600, '/');
             \sendJsonResponse(['message' => 'Login successful.', 'username' => $username]);
         } else {
@@ -169,5 +173,48 @@ class Auth
         \Models\Email::sendPasswordResetEmail($result['email'], $result['username'], $result['token']);
 
         \sendJsonResponse(['message' => 'If an account with that email exists, a password reset link has been sent.']);
+    }
+
+    private static function updateLocation($accountModel)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Allow: POST');
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+        }
+
+        if (!($_SESSION['isLoggedIn'] ?? false)) {
+            \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) {
+            $input = $_POST;
+        }
+
+        $latitude = isset($input['latitude']) ? filter_var($input['latitude'], FILTER_VALIDATE_FLOAT) : false;
+        $longitude = isset($input['longitude']) ? filter_var($input['longitude'], FILTER_VALIDATE_FLOAT) : false;
+
+        if ($latitude === false || $longitude === false) {
+            \sendJsonResponse(['error' => 'Invalid latitude or longitude.'], 400);
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            $userId = $accountModel->getUserId($_SESSION['username'] ?? '');
+            if ($userId) {
+                $_SESSION['user_id'] = $userId;
+            }
+        }
+
+        if (!$userId) {
+            \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+        }
+
+        [$ok, $result] = $accountModel->updateLocation($userId, $latitude, $longitude);
+        if (!$ok) {
+            \sendJsonResponse(['error' => $result], 500);
+        }
+
+        \sendJsonResponse(['message' => 'Location updated.']);
     }
 }

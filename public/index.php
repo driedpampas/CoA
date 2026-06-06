@@ -11,6 +11,10 @@ switch ($routeRoot) {
         require __DIR__ . '/controllers/PublicController.php';
         break;
 
+    case 'api':
+        require __DIR__ . '/../api/index.php';
+        break;
+
     case 'admin':
         if ($routeLeaf === 'submit_event') {
             require __DIR__ . '/../admin/submit_event.php';

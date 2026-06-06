@@ -12,6 +12,15 @@ $eventModel = new \Models\Event($mysql);
 $accountModel = new \Models\Account($mysql);
 $notificationModel = new \Models\Notification($mysql);
 
+if (!empty($_SESSION['isLoggedIn']) && empty($_SESSION['user_id'])) {
+    $sessionUserId = $accountModel->getUserId($_SESSION['username'] ?? '');
+    if ($sessionUserId) {
+        $_SESSION['user_id'] = $sessionUserId;
+    }
+}
+
+$currentUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
+
 function sendJsonResponse($payload, $statusCode = 200)
 {
     http_response_code($statusCode);
@@ -31,7 +40,7 @@ switch ($page) {
         [$ok, $shelters] = $shelterModel->getAll();
         $shelters = $ok ? $shelters : [];
 
-        [$ok, $unreadCount] = $notificationModel->getUnreadCount();
+        [$ok, $unreadCount] = $notificationModel->getUnreadCount($currentUserId);
         $unreadCount = $ok ? $unreadCount : 0;
 
         $isLoggedIn = !empty($_SESSION["isLoggedIn"]);
@@ -48,7 +57,7 @@ switch ($page) {
 
         switch ($resource) {
             case 'events':
-                \Handlers\Events::handle($eventModel);
+                \Handlers\Events::handle($eventModel, $accountModel, $notificationModel, $currentUserId);
                 break;
             case 'shelters':
                 \Handlers\Shelters::handle($shelterModel, $action);
@@ -60,7 +69,7 @@ switch ($page) {
                 \Handlers\Auth::handle($accountModel, $action);
                 break;
             case 'notifications':
-                \Handlers\Notifications::handle($notificationModel, $action, $routeLevels[3] ?? '');
+                \Handlers\Notifications::handle($notificationModel, $action, $routeLevels[3] ?? '', $currentUserId);
                 break;
             default:
                 sendJsonResponse(['error' => 'Not found.'], 404);
