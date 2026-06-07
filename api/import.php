@@ -1,5 +1,5 @@
 <?php
-set_time_limit(60);
+set_time_limit(300);
 
 require_once __DIR__ . '/../config/db.php';
 if (!isset($mysql) || !($mysql instanceof mysqli)) {
@@ -7,8 +7,8 @@ if (!isset($mysql) || !($mysql instanceof mysqli)) {
     exit(3);
 }
 
-//Fetching information that is at most 24h old
-$timeWindow = '-1 day';
+//Fetching information that is at most 1 year old
+$timeWindow = '-1 year';
 $startTime = date('Y-m-d\TH:i:s', strtotime($timeWindow));
 
 $apiUrl = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=text&starttime=" . urlencode($startTime) . "&minmagnitude=4.0";
@@ -76,17 +76,6 @@ $idx_depth = colIndex('depth/km', $cols);
 $idx_mag = colIndex('magnitude', $cols);
 $idx_type = colIndex('magtype', $cols);
 $idx_place = colIndex('eventlocationname', $cols);
-
-//Deleting data older than 24h
-$deleteSql = "DELETE FROM emergency_events 
-              WHERE event_type = 'earthquake' 
-              AND started_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 1 DAY)";
-
-if (!$mysql->query($deleteSql)) {
-    echo "Warning: Failed to clear out old data: " . $mysql->error . "\n";
-} else {
-    echo "Cleanup complete.\n";
-}
 
 //Inserting new data
 $insertSql = "INSERT INTO emergency_events (event_type, title, description, severity, latitude, longitude, status, started_at)

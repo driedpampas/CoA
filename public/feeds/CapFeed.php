@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/db.php';
 
 $eventModel = new \Models\Event($mysql);
 
-[$ok, $events] = $eventModel->getActiveForCapFeed();
+[$ok, $events] = $eventModel->getAllForCapFeed();
 $events = $ok ? $events : [];
 
 header('Content-Type: application/xml; charset=utf-8');

@@ -122,6 +122,11 @@
                     <label><input type="checkbox" id="toggleShelters" checked> Shelters</label>
                     <label><input type="checkbox" id="toggleUser" checked> My Location</label>
                     <label><input type="checkbox" id="toggleRoutes" checked> Routes</label>
+                    <label class="map-window-control" for="eventWindowDays">
+                        <span>Event window</span>
+                        <input id="eventWindowDays" type="number" min="1" max="30" step="1" value="1">
+                        <small>Days on map, up to 30</small>
+                    </label>
                 </div>
                 <button id="centerOnMe" class="map-btn center-on-me-btn" title="Center on my location">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

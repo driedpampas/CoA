@@ -11,6 +11,9 @@ var sheltersLayer = L.layerGroup().addTo(map);
 var userLocationLayer = L.layerGroup().addTo(map);
 var routesLayer = L.layerGroup().addTo(map);
 var osrmRouteLayer = null;
+var mapEventsData = Array.isArray(eventsData) ? eventsData.slice() : [];
+var mapEventWindowStorageKey = "coa-map-event-window-days";
+var mapEventWindowInput = document.querySelector("#eventWindowDays");
 
 var MOCK_LAT = 47.1835;
 var MOCK_LNG = 27.5644;
@@ -41,6 +44,39 @@ function getMarkerIcon(color) {
 	});
 }
 
+function clampMapEventWindowDays(value) {
+	var days = parseInt(value, 10);
+	if (Number.isNaN(days)) days = 1;
+	if (days < 1) days = 1;
+	if (days > 30) days = 30;
+	return days;
+}
+
+function loadMapEventWindowDays() {
+	var days = 1;
+
+	try {
+		var stored = localStorage.getItem(mapEventWindowStorageKey);
+		days = stored !== null ? clampMapEventWindowDays(stored) : clampMapEventWindowDays(mapEventWindowInput ? mapEventWindowInput.value : 1);
+	} catch (err) {
+		days = clampMapEventWindowDays(mapEventWindowInput ? mapEventWindowInput.value : 1);
+	}
+
+	if (mapEventWindowInput) {
+		mapEventWindowInput.value = days;
+	}
+
+	return days;
+}
+
+function saveMapEventWindowDays(days) {
+	try {
+		localStorage.setItem(mapEventWindowStorageKey, String(days));
+	} catch (err) {
+		console.warn("[Events] Failed to persist map window:", err);
+	}
+}
+
 var shelterIcon = L.divIcon({
 	className: "custom-marker",
 	html: '<div style="background:#4caf50;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>',
@@ -50,7 +86,7 @@ var shelterIcon = L.divIcon({
 
 function renderEventsOnMap() {
 	eventsLayer.clearLayers();
-	eventsData.forEach((event) => {
+	mapEventsData.forEach((event) => {
 		if (!event.latitude || !event.longitude) return;
 
 		var color = getMarkerColor(event.event_type);
@@ -64,7 +100,24 @@ function renderEventsOnMap() {
 	});
 }
 
+function fetchMapEvents() {
+	var days = loadMapEventWindowDays();
+	saveMapEventWindowDays(days);
+
+	fetch(`api/events?days=${days}`)
+		.then((r) => r.json())
+		.then((data) => {
+			mapEventsData = Array.isArray(data) ? data : [];
+			renderEventsOnMap();
+		})
+		.catch((err) => {
+			console.warn("[Map] Failed to fetch recent events:", err);
+		});
+}
+
+loadMapEventWindowDays();
 renderEventsOnMap();
+fetchMapEvents();
 
 sheltersData.forEach((shelter) => {
 	if (!shelter.latitude || !shelter.longitude) return;
@@ -544,7 +597,7 @@ function pollEvents() {
 		.then((r) => r.json())
 		.then((data) => {
 			eventsData = data;
-			renderEventsOnMap();
+			fetchMapEvents();
 			syncLiveNotificationsFromEvents();
 			checkEventProximity();
 		})
@@ -662,6 +715,15 @@ document.querySelector("#toggleRoutes").addEventListener("change", (e) => {
 		map.removeLayer(routesLayer);
 	}
 });
+
+if (mapEventWindowInput) {
+	mapEventWindowInput.addEventListener("change", () => {
+		var days = clampMapEventWindowDays(mapEventWindowInput.value);
+		mapEventWindowInput.value = days;
+		saveMapEventWindowDays(days);
+		fetchMapEvents();
+	});
+}
 
 document.addEventListener("click", (e) => {
 	var item = e.target.closest(".event-item, .shelter-item");
