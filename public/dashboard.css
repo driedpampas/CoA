@@ -5,8 +5,7 @@
 }
 
 body {
-	font-family:
-		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 	background: #f0f2f5;
 	color: #333;
 }
@@ -19,25 +18,15 @@ body {
 	justify-content: space-between;
 	align-items: center;
 	transition: background 0.4s ease;
-}
-
-.dashboard-header.header-alert {
-	background: #b71c1c;
-	animation: headerPulse 2s ease-in-out infinite;
-}
-
-@keyframes headerPulse {
-	0%, 100% {
-		background-color: #b71c1c;
-	}
-	50% {
-		background-color: #d32f2f;
-	}
+	position: sticky;
+	top: 0;
+	z-index: 1000;
 }
 
 .dashboard-header h1 {
 	font-size: 1.3rem;
 	font-weight: 600;
+	margin: 0;
 }
 
 .dashboard-header nav a {
@@ -45,10 +34,48 @@ body {
 	text-decoration: none;
 	margin-left: 1.5rem;
 	font-size: 0.9rem;
+	font-weight: 600;
+	transition: color 0.2s ease;
 }
 
 .dashboard-header nav a:hover {
 	color: #fff;
+}
+
+/* Emergency Mode Header */
+.dashboard-header.header-alert {
+	background: #b71c1c;
+	color: #000;
+	animation: headerPulse 2s ease-in-out infinite;
+}
+
+@keyframes headerPulse {
+	0%, 100% {
+		background-color: #b42318;
+	}
+	50% {
+		background-color: #e03131;
+	}
+}
+
+.dashboard-header.header-alert h1,
+.dashboard-header.header-alert nav a,
+.dashboard-header.header-alert .notification-bell {
+	color: #000 !important;
+}
+
+.dashboard-header.header-alert nav a:hover {
+	color: #333 !important;
+	text-decoration: underline;
+}
+
+.dashboard-header.header-alert .menu-toggle span {
+	background: #000 !important;
+}
+
+.dashboard-header.header-alert .notification-badge {
+	background: #000 !important;
+	color: #fff !important;
 }
 
 .dashboard-main {
@@ -792,3 +819,100 @@ body {
 		left: 0;
 	}
 }
+
+/* Profile page settings styles */
+.profile-container {
+	max-width: 720px;
+	margin: 2rem auto;
+	padding: 2rem;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+	margin-bottom: 1.5rem;
+	border-bottom: 2px solid #e0e0e0;
+	padding-bottom: 1rem;
+}
+
+.profile-header h1 {
+	font-size: 1.4rem;
+	color: #1a1a2e;
+}
+
+.profile-header p {
+	color: #666;
+	font-size: 0.9rem;
+	margin-top: 0.25rem;
+}
+
+.form-group {
+	margin-bottom: 1rem;
+}
+
+.form-group label {
+	display: block;
+	font-weight: 600;
+	font-size: 0.9rem;
+	color: #333;
+	margin-bottom: 0.35rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+	width: 100%;
+	padding: 0.55rem 0.7rem;
+	border: 1px solid #cfd8dc;
+	border-radius: 4px;
+	font: inherit;
+	font-size: 0.9rem;
+}
+
+.form-group textarea {
+	resize: vertical;
+	min-height: 80px;
+}
+
+.form-group .hint {
+	font-size: 0.8rem;
+	color: #888;
+	margin-top: 0.2rem;
+}
+
+.btn-row {
+	display: flex;
+	gap: 0.75rem;
+	margin-top: 1.25rem;
+}
+
+.notice {
+	background: #fff3e0;
+	padding: 0.85rem 1rem;
+	border-radius: 4px;
+	margin-bottom: 1.25rem;
+	font-size: 0.9rem;
+	color: #5d4037;
+}
+
+.notice-critical {
+	background: #ffebee;
+	color: #5d1010;
+}
+
+.notice a {
+	color: #1565c0;
+	text-decoration: underline;
+}
+
+.profile-readonly {
+	color: #666;
+	font-size: 0.9rem;
+	margin-bottom: 1rem;
+}
+
+.profile-readonly strong {
+	color: #1a1a2e;
+}
+

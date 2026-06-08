@@ -21,7 +21,7 @@
         <p style="margin-bottom: 20px; color: #616a7e; font-size: 13px;">
             Didn't receive the email? Check your spam folder, or <a href="register">try registering again</a>.
         </p>
-        <a href="login" style="display:block;width:100%;background-color:#1a1a2e;color:white;border:none;padding:12px;font-size:16px;font-weight:600;border-radius:6px;cursor:pointer;text-align:center;text-decoration:none;margin-top:10px;box-sizing:border-box;">Go to Login</a>
+        <a href="login" class="btn-submit">Go to Login</a>
     </form>
 </body>
 

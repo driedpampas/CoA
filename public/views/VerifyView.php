@@ -23,7 +23,7 @@
                 Your email has been verified successfully, <strong><?php echo htmlspecialchars($verifiedUsername ?? '', ENT_QUOTES, 'UTF-8'); ?></strong>.
                 You can now log in to your account.
             </p>
-            <a href="login" style="display:block;width:100%;background-color:#1a1a2e;color:white;border:none;padding:12px;font-size:16px;font-weight:600;border-radius:6px;cursor:pointer;text-align:center;text-decoration:none;margin-top:10px;box-sizing:border-box;">Go to Login</a>
+            <a href="login" class="btn-submit">Go to Login</a>
         </form>
     <?php endif; ?>
 </body>

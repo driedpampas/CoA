@@ -3,7 +3,7 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	font-family: "Comic Sans MS", cursive;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -68,7 +68,9 @@ input[type="email"]:focus {
 }
 
 /* Buttons */
-button[type="submit"] {
+button[type="submit"],
+.btn-submit {
+	display: block;
 	width: 100%;
 	background-color: #1a1a2e;
 	color: white;
@@ -80,10 +82,14 @@ button[type="submit"] {
 	cursor: pointer;
 	transition: background-color 0.2s ease;
 	margin-top: 10px;
+	text-align: center;
+	text-decoration: none;
+	box-sizing: border-box;
 }
 
-button[type="submit"]:hover {
-	background-color: #1a1a2e;
+button[type="submit"]:hover,
+.btn-submit:hover {
+	background-color: #24385d;
 }
 
 /* Links */
@@ -104,7 +110,7 @@ p a:hover {
 	text-decoration: underline;
 }
 
-/* Errors */
+/* Errors and Feedback */
 .error-message {
 	background-color: #f6f6f6;
 	color: #da1111;
@@ -114,6 +120,28 @@ p a:hover {
 	width: 100%;
 	max-width: 400px;
 	margin-top: 0;
+	margin-bottom: 20px;
+	text-align: center;
+	font-size: 14px;
+	order: 1;
+}
+
+#usernameFeedback {
+	color: #da1111;
+	font-size: 0.9em;
+	margin-top: -12px;
+	margin-bottom: 12px;
+	text-align: left;
+}
+
+.success-message {
+	background-color: #f0fff0;
+	color: #1a7a1a;
+	border: 1px solid #87c687;
+	padding: 12px;
+	border-radius: 6px;
+	width: 100%;
+	max-width: 400px;
 	margin-bottom: 20px;
 	text-align: center;
 	font-size: 14px;

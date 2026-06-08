@@ -2,7 +2,7 @@
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	font-family: "Trebuchet MS", "Gill Sans", "Noto Sans", sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 :root {
@@ -11,7 +11,7 @@
 	--panel-border: #d7dde8;
 	--ink: #101828;
 	--muted: #667085;
-	--navy: #152238;
+	--navy: #1a1a2e;
 	--navy-2: #1f3150;
 	--green: #15803d;
 	--green-hover: #166534;
@@ -37,33 +37,65 @@ body.modal-open {
 .admin-header {
 	background: var(--navy);
 	color: #fff;
-	padding: 1rem 1.5rem;
+	padding: 1rem 2rem;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	position: sticky;
 	top: 0;
-	z-index: 20;
+	z-index: 1000;
+	transition: background 0.4s ease;
 }
 
 .admin-header h1 {
-	font-size: 1.35rem;
-	font-weight: 700;
+	font-size: 1.3rem;
+	font-weight: 600;
 	color: #fff;
 	text-align: left;
 	margin: 0;
 }
 
 .admin-header nav a {
-	color: rgba(255, 255, 255, 0.86);
+	color: #e0e0e0;
 	text-decoration: none;
-	margin-left: 1.25rem;
-	font-size: 0.95rem;
+	margin-left: 1.5rem;
+	font-size: 0.9rem;
 	font-weight: 600;
+	transition: color 0.2s ease;
 }
 
 .admin-header nav a:hover {
 	color: #fff;
+}
+
+/* Emergency Mode Header styling */
+.admin-header.header-alert {
+	background: #b71c1c !important;
+	color: #000;
+	animation: headerPulse 2s ease-in-out infinite;
+}
+
+@keyframes headerPulse {
+	0%, 100% {
+		background-color: #b42318;
+	}
+	50% {
+		background-color: #e03131;
+	}
+}
+
+.admin-header.header-alert h1,
+.admin-header.header-alert nav a {
+	color: #000 !important;
+}
+
+.admin-header.header-alert nav a:hover {
+	color: #333 !important;
+	text-decoration: underline;
+}
+
+.admin-header.header-alert .menu-toggle span {
+	background: #000 !important;
 }
 
 .admin-container {

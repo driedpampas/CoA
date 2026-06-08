@@ -20,7 +20,7 @@
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <p style="background-color:#f0fff0;color:#1a7a1a;border:1px solid #87c687;padding:12px;border-radius:6px;width:100%;max-width:400px;margin-bottom:20px;text-align:center;font-size:14px;order:1;">
+        <p class="success-message">
             <?php echo htmlspecialchars($successMessage, ENT_QUOTES, 'UTF-8'); ?>
         </p>
     <?php endif; ?>
