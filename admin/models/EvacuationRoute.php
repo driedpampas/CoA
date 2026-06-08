@@ -2,7 +2,7 @@
 
 namespace Models;
 
-class Shelter
+class EvacuationRoute
 {
     private $client;
 
@@ -20,7 +20,7 @@ class Shelter
             'sort' => $sort,
             'dir' => $sortDir
         ]);
-        [$ok, $res] = $this->client->request('GET', 'shelters?' . $params);
+        [$ok, $res] = $this->client->request('GET', 'routes?' . $params);
         if ($ok && isset($res['rows'])) {
             return [true, $res];
         }
@@ -29,22 +29,17 @@ class Shelter
 
     public function create(array $data)
     {
-        return $this->client->request('POST', 'shelters', $data);
+        return $this->client->request('POST', 'routes', $data);
     }
 
     public function update($id, array $data)
     {
         $data['id'] = $id;
-        return $this->client->request('PATCH', 'shelters', $data);
-    }
-
-    public function getAll()
-    {
-        return $this->client->request('GET', 'shelters');
+        return $this->client->request('PATCH', 'routes', $data);
     }
 
     public function delete($id)
     {
-        return $this->client->request('DELETE', 'shelters', ['id' => $id]);
+        return $this->client->request('DELETE', 'routes', ['id' => $id]);
     }
 }

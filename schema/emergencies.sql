@@ -71,19 +71,28 @@ ALTER TABLE emergency_events ADD UNIQUE KEY unique_earthquake (event_type, start
 
 CREATE TABLE IF NOT EXISTS auth (
     id              INT UNSIGNED        NOT NULL AUTO_INCREMENT,
-    user VARCHAR(32) NOT NULL,
-    pass VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    role ENUM('user', 'admin') DEFAULT 'user',
-    email_verified TINYINT(1) NOT NULL DEFAULT 0,
-    verification_token VARCHAR(64) DEFAULT NULL,
-    verification_expires DATETIME DEFAULT NULL,
-    reset_token VARCHAR(64) DEFAULT NULL,
-    reset_expires DATETIME DEFAULT NULL,
+    user            VARCHAR(32)         NOT NULL,
+    pass            VARCHAR(255)        NOT NULL,
+    email           VARCHAR(255)        NOT NULL,
+    bio             TEXT                DEFAULT NULL,
+    notification_radius_km INT UNSIGNED NOT NULL DEFAULT 25,
+    preferred_shelter_id INT UNSIGNED   DEFAULT NULL,
+    role            ENUM('user', 'admin') DEFAULT 'user',
+    email_verified  TINYINT(1)          NOT NULL DEFAULT 0,
+    verification_token VARCHAR(64)      DEFAULT NULL,
+    verification_expires DATETIME       DEFAULT NULL,
+    reset_token     VARCHAR(64)         DEFAULT NULL,
+    reset_expires   DATETIME            DEFAULT NULL,
+    last_latitude   DECIMAL(10, 7)      DEFAULT NULL,
+    last_longitude  DECIMAL(10, 7)      DEFAULT NULL,
+    last_location_updated_at TIMESTAMP NULL DEFAULT NULL,
     PRIMARY KEY (user),
     UNIQUE KEY idx_auth_id (id),
     INDEX idx_verification_token (verification_token),
-    INDEX idx_reset_token (reset_token)
+    INDEX idx_reset_token (reset_token),
+    INDEX idx_auth_preferred_shelter (preferred_shelter_id),
+    CONSTRAINT fk_preferred_shelter FOREIGN KEY (preferred_shelter_id) REFERENCES shelters(id)
+        ON UPDATE CASCADE ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS notifications (

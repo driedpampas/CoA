@@ -8,6 +8,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 require_once __DIR__ . '/models/HttpClient.php';
 require_once __DIR__ . '/models/Event.php';
 require_once __DIR__ . '/models/Shelter.php';
+require_once __DIR__ . '/models/EvacuationRoute.php';
 require_once __DIR__ . '/models/Account.php';
 
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -15,6 +16,7 @@ $apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api
 
 $eventModel = new \Models\Event($apiBaseUrl);
 $shelterModel = new \Models\Shelter($apiBaseUrl);
+$routeModel = new \Models\EvacuationRoute($apiBaseUrl);
 $userModel = new \Models\Account($apiBaseUrl);
 
 function e($value): string
@@ -117,8 +119,15 @@ $successEvent = isset($_GET['success_event']);
 $errorEvent = isset($_GET['error_event']) ? e(urldecode((string) $_GET['error_event'])) : '';
 $successShelter = isset($_GET['success_shelter']);
 $errorShelter = isset($_GET['error_shelter']) ? e(urldecode((string) $_GET['error_shelter'])) : '';
+$successRoute = isset($_GET['success_route']);
+$errorRoute = isset($_GET['error_route']) ? e(urldecode((string) $_GET['error_route'])) : '';
 
-$activeTab = ($_GET['tab'] ?? 'events') === 'shelters' ? 'shelters' : 'events';
+$allowedTabs = ['events', 'shelters', 'routes'];
+if (!isset($_GET['tab']) || !in_array($_GET['tab'], $allowedTabs, true)) {
+    header('Location: /admin?tab=events');
+    exit;
+}
+$activeTab = $_GET['tab'];
 $pageSizes = [5, 10, 25, 50, 100];
 $defaultPageSize = 10;
 
@@ -158,12 +167,15 @@ $shelterStatusOptions = [
 
 $eventsPageSize = normalizePageSize($_GET['events_size'] ?? $defaultPageSize, $pageSizes, $defaultPageSize);
 $sheltersPageSize = normalizePageSize($_GET['shelters_size'] ?? $defaultPageSize, $pageSizes, $defaultPageSize);
+$routesPageSize = normalizePageSize($_GET['routes_size'] ?? $defaultPageSize, $pageSizes, $defaultPageSize);
 
 $eventsSearch = trim((string) ($_GET['events_q'] ?? ''));
 $sheltersSearch = trim((string) ($_GET['shelters_q'] ?? ''));
+$routesSearch = trim((string) ($_GET['routes_q'] ?? ''));
 
 $eventsPage = max(1, (int) ($_GET['events_page'] ?? 1));
 $sheltersPage = max(1, (int) ($_GET['shelters_page'] ?? 1));
+$routesPage = max(1, (int) ($_GET['routes_page'] ?? 1));
 
 $eventSortMap = [
     'type' => 'event_type',
@@ -189,6 +201,16 @@ $shelterSortMap = [
     'updated' => 'updated_at',
 ];
 
+$routeSortMap = [
+    'name' => 'name',
+    'shelter' => 'shelter',
+    'distance' => 'distance',
+    'duration' => 'duration',
+    'status' => 'status',
+    'created' => 'created',
+    'updated' => 'updated',
+];
+
 [$eventsSort, $eventsSortDir, $eventsSortColumn] = resolveSort(
     (string) ($_GET['events_sort'] ?? 'created'),
     (string) ($_GET['events_dir'] ?? 'desc'),
@@ -200,6 +222,13 @@ $shelterSortMap = [
     (string) ($_GET['shelters_sort'] ?? 'created'),
     (string) ($_GET['shelters_dir'] ?? 'desc'),
     $shelterSortMap,
+    'created'
+);
+
+[$routesSort, $routesSortDir, $routesSortColumn] = resolveSort(
+    (string) ($_GET['routes_sort'] ?? 'created'),
+    (string) ($_GET['routes_dir'] ?? 'desc'),
+    $routeSortMap,
     'created'
 );
 
@@ -249,18 +278,54 @@ foreach ($shelters as &$row) {
 unset($row);
 $hasShelters = !empty($shelters);
 
+[$okR, $routeData] = $routeModel->getPaginated($routesPage, $routesPageSize, $routesSearch, $routesSort, $routesSortDir);
+$routeQueryOk = $okR;
+$routes = $okR ? ($routeData['rows'] ?? []) : [];
+$routeCount = $okR ? ($routeData['total'] ?? 0) : 0;
+$routeTotalPages = $okR ? ($routeData['totalPages'] ?? 1) : 1;
+$routesPage = $okR ? ($routeData['page'] ?? 1) : 1;
+
+foreach ($routes as &$row) {
+    $row['name'] = e($row['name'] ?? '');
+    $row['shelter_id'] = (int)($row['shelter_id'] ?? 0);
+    $row['shelter_name'] = e($row['shelter_name'] ?? '');
+    $row['from_latitude'] = e((string)($row['from_latitude'] ?? ''));
+    $row['from_longitude'] = e((string)($row['from_longitude'] ?? ''));
+    $row['distance_meters'] = e((string)($row['distance_meters'] ?? ''));
+    $row['estimated_minutes'] = e((string)($row['estimated_minutes'] ?? ''));
+    $row['status'] = e($row['status'] ?? '');
+    $row['notes'] = e($row['notes'] ?? '');
+    $row['created_at'] = formatTimestamp($row['created_at'] ?? '');
+    $row['updated_at'] = formatTimestamp($row['updated_at'] ?? '');
+}
+unset($row);
+$hasRoutes = !empty($routes);
+
+[$okAllShelters, $allSheltersData] = $shelterModel->getAll();
+$sheltersForDropdown = $okAllShelters ? $allSheltersData : [];
+foreach ($sheltersForDropdown as &$row) {
+    $row['id'] = (int)($row['id'] ?? 0);
+    $row['name'] = e($row['name'] ?? '');
+}
+unset($row);
+
 $adminQueryBase = [
     'tab' => $activeTab,
     'events_page' => $eventsPage,
     'shelters_page' => $sheltersPage,
+    'routes_page' => $routesPage,
     'events_size' => $eventsPageSize,
     'shelters_size' => $sheltersPageSize,
+    'routes_size' => $routesPageSize,
     'events_q' => $eventsSearch,
     'shelters_q' => $sheltersSearch,
+    'routes_q' => $routesSearch,
     'events_sort' => $eventsSort,
     'events_dir' => $eventsSortDir,
     'shelters_sort' => $sheltersSort,
     'shelters_dir' => $sheltersSortDir,
+    'routes_sort' => $routesSort,
+    'routes_dir' => $routesSortDir,
 ];
 
 function adminUrl(array $overrides = []): string

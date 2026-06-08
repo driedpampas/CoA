@@ -46,7 +46,7 @@ switch ($resource) {
         break;
 
     case 'routes':
-        \Handlers\Routes::handle($routeModel, $action);
+        \Handlers\Routes::handle($routeModel, $action, $shelterModel);
         break;
 
     case 'auth':
@@ -59,6 +59,10 @@ switch ($resource) {
 
     case 'export':
         \Handlers\Export::handle($eventModel, $shelterModel, $routeModel);
+        break;
+
+    case 'import':
+        \Handlers\Import::handle($eventModel, $shelterModel, $accountModel);
         break;
 
     default:

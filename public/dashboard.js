@@ -632,14 +632,39 @@ setTimeout(function () {
 		}
 	}
 
+	function areEventListsEqual(list1, list2) {
+		if (!list1 || !list2) return false;
+		if (list1.length !== list2.length) return false;
+		for (var i = 0; i < list1.length; i++) {
+			var e1 = list1[i];
+			var e2 = list2[i];
+			if (
+				e1.id !== e2.id ||
+				e1.status !== e2.status ||
+				e1.severity !== e2.severity ||
+				e1.title !== e2.title ||
+				e1.latitude !== e2.latitude ||
+				e1.longitude !== e2.longitude ||
+				e1.started_at !== e2.started_at ||
+				e1.description !== e2.description
+			) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	function pollEvents() {
 		fetch("api/events")
 			.then((r) => r.json())
 			.then((data) => {
-				eventsData = data;
-				fetchMapEvents();
-				syncLiveNotificationsFromEvents();
-				checkEventProximity();
+				var changed = !areEventListsEqual(eventsData, data);
+				if (changed) {
+					eventsData = data;
+					fetchMapEvents();
+					syncLiveNotificationsFromEvents();
+					checkEventProximity();
+				}
 			})
 			.catch((err) => {
 				console.warn("[Poll] Failed to fetch events:", err);
