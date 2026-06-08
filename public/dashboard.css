@@ -536,6 +536,55 @@ body {
 	overflow: hidden;
 }
 
+.sidebar-tabs {
+	display: flex;
+	gap: 0.25rem;
+	margin-bottom: 0.5rem;
+}
+
+.sidebar-tab {
+	flex: 1;
+	padding: 0.35rem 0.5rem;
+	border: none;
+	background: #e0e0e0;
+	color: #333;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.8rem;
+	font-weight: 600;
+}
+
+.sidebar-tab.active {
+	background: #1a1a2e;
+	color: #fff;
+}
+
+.radius-notice {
+	background: #e3f2fd;
+	border-left: 4px solid #2196f3;
+	color: #0d47a1;
+	padding: 0.75rem 1rem;
+	border-radius: 4px;
+	font-size: 0.85rem;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.radius-notice strong {
+	display: block;
+	margin-bottom: 0.15rem;
+}
+
+.radius-notices {
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	z-index: 1100;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	pointer-events: none;
+}
+
 .notification-dropdown.hidden {
 	display: none;
 }

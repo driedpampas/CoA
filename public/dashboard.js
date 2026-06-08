@@ -24,6 +24,8 @@ var liveNotificationsStorageKey =
 	currentUserId !== null ? `coa-live-notifications-${currentUserId}` : null;
 var liveNotificationsData = getNotificationStorage();
 
+var profileRadius = window.profileRadius !== undefined ? window.profileRadius : null;
+
 function getMarkerColor(eventType) {
 	var colors = {
 		earthquake: "#d32f2f",
@@ -88,6 +90,11 @@ function renderEventsOnMap() {
 	eventsLayer.clearLayers();
 	mapEventsData.forEach((event) => {
 		if (!event.latitude || !event.longitude) return;
+
+		if (profileRadius !== null && profileRadius > 0 && userLat !== null && userLng !== null) {
+			var dist = haversineDistance(userLat, userLng, parseFloat(event.latitude), parseFloat(event.longitude));
+			if (dist > profileRadius) return;
+		}
 
 		var color = getMarkerColor(event.event_type);
 		var marker = L.marker([event.latitude, event.longitude], {
@@ -159,6 +166,29 @@ function showLocationBanner(text, isError) {
 function hideLocationBanner() {
 	if (!locationBannerEl) return;
 	locationBannerEl.classList.add("location-banner--hidden");
+}
+
+function renderRadiusNoticeIfNeeded() {
+	if (profileRadius === null || profileRadius <= 0) return;
+	if (userLat === null || userLng === null) return;
+
+	var count = mapEventsData.filter((event) => {
+		if (!event.latitude || !event.longitude) return false;
+		return haversineDistance(userLat, userLng, parseFloat(event.latitude), parseFloat(event.longitude)) <= profileRadius;
+	}).length;
+
+	if (count === 0) return;
+
+	var container = document.createElement('div');
+	container.id = 'radiusNotices';
+	container.className = 'radius-notices';
+	container.style.cssText = 'position:absolute;top:10px;left:10px;z-index:1100;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;';
+
+	var notice = document.createElement('div');
+	notice.className = 'radius-notice';
+	notice.innerHTML = '<strong>Radius filter active</strong><small>Only the ' + count + ' disaster' + (count === 1 ? '' : 's') + ' within ' + profileRadius + ' km are shown.</small>';
+	container.appendChild(notice);
+	document.querySelector('.map-container').appendChild(container);
 }
 
 var userLocationIcon = L.divIcon({
@@ -353,8 +383,7 @@ function displayOSRMRoute(route) {
 		"<strong>Evacuation Route (OSRM)</strong><br>" +
 			"Distance: " +
 			distKm +
-			" km<br>" +
-			"Estimated time: ~" +
+			" km<br>Estimated time: ~" +
 			durationMin +
 			" min",
 	);
@@ -399,7 +428,7 @@ function checkEventProximity() {
 }
 
 function triggerProximityAlert(event, distance) {
-		console.log(
+	console.log(
 		"[Proximity] Alert triggered for:",
 		event.title,
 		"at",
@@ -409,6 +438,8 @@ function triggerProximityAlert(event, distance) {
 
 	var header = document.querySelector(".dashboard-header");
 	if (header) header.classList.add("header-alert");
+
+	setEmergencyMode(true);
 
 	map.setView([userLat, userLng], 13);
 
@@ -512,13 +543,14 @@ function syncLiveNotificationsFromEvents() {
 	}
 
 	var changed = false;
+	var maxDist = profileRadius !== null && profileRadius > 0 ? profileRadius : PROXIMITY_RADIUS_KM;
 
 	eventsData.forEach((event) => {
 		if (!event || event.status !== "active") return;
 		if (event.latitude === null || event.longitude === null) return;
 
 		var distance = getNearbyEventDistance(event);
-		if (distance === null || distance > PROXIMITY_RADIUS_KM) return;
+		if (distance === null || distance > maxDist) return;
 
 		var eventKey = getLiveNotificationKey(event);
 		if (!eventKey) return;
@@ -586,6 +618,8 @@ function clearProximityAlert() {
 	var header = document.querySelector(".dashboard-header");
 	if (header) header.classList.remove("header-alert");
 
+	setEmergencyMode(false);
+
 	if (osrmRouteLayer) {
 		map.removeLayer(osrmRouteLayer);
 		osrmRouteLayer = null;
@@ -615,6 +649,7 @@ function setUserLocation(lat, lng) {
 	syncLiveNotificationsFromEvents();
 	checkEventProximity();
 	pushUserLocation(lat, lng);
+	renderRadiusNoticeIfNeeded();
 }
 
 function pushUserLocation(lat, lng) {
@@ -726,7 +761,7 @@ if (mapEventWindowInput) {
 }
 
 document.addEventListener("click", (e) => {
-	var item = e.target.closest(".event-item, .shelter-item");
+	var item = e.target.closest(".event-item, .shelter-item, .route-item");
 	if (!item) return;
 
 	var lat = parseFloat(item.getAttribute("data-lat"));
@@ -751,6 +786,43 @@ if (menuToggle && headerNav) {
 			menuToggle.classList.remove("open");
 			headerNav.classList.remove("open");
 		}
+	});
+}
+
+var sidebarTabs = document.querySelectorAll(".sidebar-tab");
+var emergencyMode = false;
+
+function setEmergencyMode(active) {
+	emergencyMode = active;
+	var defaultTarget = active ? "shelterPanel" : "panel-events";
+	var tabs = document.querySelectorAll(".sidebar-tab");
+	if (!tabs.length) return;
+
+	tabs.forEach((btn) => {
+		var target = btn.getAttribute("data-target");
+		btn.classList.toggle("active", target === defaultTarget);
+	});
+
+	["shelterPanel", "routesPanel", "panel-events"].forEach((id) => {
+		var el = document.getElementById(id);
+		if (!el) return;
+		el.style.display = id === defaultTarget ? "" : "none";
+	});
+}
+
+if (sidebarTabs.length) {
+	sidebarTabs.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			sidebarTabs.forEach((b) => b.classList.remove("active"));
+			btn.classList.add("active");
+
+			var targetId = btn.getAttribute("data-target");
+			["shelterPanel", "routesPanel", "panel-events"].forEach((id) => {
+				var el = document.getElementById(id);
+				if (!el) return;
+				el.style.display = id === targetId ? "" : "none";
+			});
+		});
 	});
 }
 

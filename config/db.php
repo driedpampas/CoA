@@ -92,3 +92,19 @@ if ($earthquakeCheck && $earthquakeCheck->num_rows === 0) {
     $mysql->query("INSERT INTO emergency_events (event_type, title, description, severity, latitude, longitude, status, started_at)
         VALUES ('earthquake', 'Earthquake near Holboca', 'Magnitude 5.2 earthquake detected near Holboca, approximately 20km northeast of Iasi city center. Tremors felt across the entire metropolitan area. Buildings inspected for structural damage.', 'extreme', 47.3500, 27.6500, 'active', DATE_SUB(NOW(), INTERVAL 15 MINUTE))");
 }
+
+$profileBioCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'bio'");
+if ($profileBioCol && $profileBioCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN bio TEXT DEFAULT NULL AFTER email");
+}
+
+$profileRadiusCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'notification_radius_km'");
+if ($profileRadiusCol && $profileRadiusCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN notification_radius_km INT UNSIGNED NOT NULL DEFAULT 25 AFTER bio");
+}
+
+$profileShelterCol = $mysql->query("SHOW COLUMNS FROM auth LIKE 'preferred_shelter_id'");
+if ($profileShelterCol && $profileShelterCol->num_rows === 0) {
+    $mysql->query("ALTER TABLE auth ADD COLUMN preferred_shelter_id INT UNSIGNED DEFAULT NULL AFTER notification_radius_km");
+    $mysql->query("ALTER TABLE auth ADD CONSTRAINT fk_preferred_shelter FOREIGN KEY (preferred_shelter_id) REFERENCES shelters(id) ON UPDATE CASCADE ON DELETE SET NULL");
+}

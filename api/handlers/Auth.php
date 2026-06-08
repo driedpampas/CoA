@@ -28,6 +28,9 @@ class Auth
             case 'update-location':
                 self::updateLocation($accountModel);
                 break;
+            case 'profile':
+                self::profile($accountModel);
+                break;
             default:
                 \sendJsonResponse(['error' => 'Not found.'], 404);
                 break;
@@ -216,5 +219,69 @@ class Auth
         }
 
         \sendJsonResponse(['message' => 'Location updated.']);
+    }
+
+    private static function profile($accountModel)
+    {
+        if (!($_SESSION['isLoggedIn'] ?? false)) {
+            \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+            return;
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        if (!$userId) {
+            $userId = $accountModel->getUserId($_SESSION['username'] ?? '');
+            if ($userId) {
+                $_SESSION['user_id'] = $userId;
+            }
+        }
+
+        if (!$userId) {
+            \sendJsonResponse(['error' => 'Unauthorized.'], 401);
+            return;
+        }
+
+        $method = $_SERVER['REQUEST_METHOD'];
+
+        if ($method === 'GET') {
+            [$ok, $data] = $accountModel->getProfile($userId);
+            if (!$ok) {
+                \sendJsonResponse(['error' => $data], 404);
+                return;
+            }
+            \sendJsonResponse($data);
+            return;
+        }
+
+        if ($method === 'POST') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input) {
+                $input = $_POST;
+            }
+
+            $bio = isset($input['bio']) ? trim((string) $input['bio']) : '';
+            $radius = isset($input['notification_radius_km']) ? (int) $input['notification_radius_km'] : 25;
+            $radius = max(1, min(500, $radius));
+            $shelterId = isset($input['preferred_shelter_id']) && $input['preferred_shelter_id'] !== '' && $input['preferred_shelter_id'] !== null
+                ? (int) $input['preferred_shelter_id']
+                : null;
+
+            [$ok, $msg] = $accountModel->updateProfile($userId, $bio, $radius, $shelterId);
+            if (!$ok) {
+                \sendJsonResponse(['error' => $msg], 500);
+                return;
+            }
+
+            [$ok, $profile] = $accountModel->getProfile($userId);
+            if (!$ok) {
+                \sendJsonResponse(['error' => $profile], 500);
+                return;
+            }
+
+            \sendJsonResponse(['message' => 'Profile updated.', 'profile' => $profile]);
+            return;
+        }
+
+        \sendJsonResponse(['error' => 'Method not allowed.'], 405);
     }
 }

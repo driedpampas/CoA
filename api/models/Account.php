@@ -484,4 +484,126 @@ class Account
         return [true, $username];
     }
 
+    public function getProfile($userId)
+    {
+        $userId = (int) $userId;
+
+        if (!($stmt = $this->mysql->prepare(
+            "SELECT id, user, email, role, bio, notification_radius_km, preferred_shelter_id, last_latitude, last_longitude
+             FROM auth
+             WHERE id = ?"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        if (!$stmt->bind_param('i', $userId)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        $result = $stmt->get_result();
+        if ($result->num_rows === 0) {
+            return [false, 'Utilizatorul nu a fost găsit.'];
+        }
+
+        $row = $result->fetch_assoc();
+        return [true, $row];
+    }
+
+    public function updateProfile($userId, $bio, $notificationRadiusKm, $preferredShelterId)
+    {
+        $userId = (int) $userId;
+        $notificationRadiusKm = (int) $notificationRadiusKm;
+
+        $shelterId = $preferredShelterId !== null ? (int) $preferredShelterId : null;
+
+        if (!($stmt = $this->mysql->prepare(
+            "UPDATE auth
+             SET bio = ?, notification_radius_km = ?, preferred_shelter_id = ?
+             WHERE id = ?"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        $bindShelter = $shelterId;
+        if (!$stmt->bind_param('siii', $bio, $notificationRadiusKm, $bindShelter, $userId)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        return [true, true];
+    }
+
+    public function getShelterStatus($shelterId)
+    {
+        if (!$shelterId) {
+            return null;
+        }
+
+        $shelterId = (int) $shelterId;
+
+        if (!($stmt = $this->mysql->prepare(
+            "SELECT s.status, s.name, s.capacity, s.current_occupancy
+             FROM shelters s
+             WHERE s.id = ?"
+        ))) {
+            return null;
+        }
+
+        if (!$stmt->bind_param('i', $shelterId)) {
+            return null;
+        }
+
+        if (!$stmt->execute()) {
+            return null;
+        }
+
+        $result = $stmt->get_result();
+        if ($result->num_rows === 0) {
+            return null;
+        }
+
+        return $result->fetch_assoc();
+    }
+
+    public function findNearestOpenShelter($lat, $lng, $excludeId = null)
+    {
+        $excludeId = $excludeId !== null ? (int) $excludeId : null;
+
+        if (!($stmt = $this->mysql->prepare(
+            "SELECT id, name, address, latitude, longitude, capacity, current_occupancy, shelter_type, status
+             FROM shelters
+             WHERE status = 'open'
+               AND (? IS NULL OR id <> ?)
+             ORDER BY ST_Distance_Sphere(geom_point, ST_GeomFromText(CONCAT('POINT(', longitude, ' ', latitude, ')'), 4326)) ASC
+             LIMIT 1"
+        ))) {
+            return [false, 'Eroare la pregătirea interogării.'];
+        }
+
+        if (!$stmt->bind_param('ii', $excludeId, $excludeId)) {
+            return [false, 'Eroare la legarea parametrilor.'];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Eroare la executarea interogării.'];
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return [false, 'Eroare la preluarea rezultatelor.'];
+        }
+
+        if ($result->num_rows === 0) {
+            return [true, null];
+        }
+
+        return [true, $result->fetch_assoc()];
+    }
+
 }

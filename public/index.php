@@ -8,6 +8,7 @@ $route = $routeRoot;
 switch ($routeRoot) {
     case 'dashboard':
     case 'cap-feed':
+    case 'profile':
         require __DIR__ . '/controllers/PublicController.php';
         break;
 

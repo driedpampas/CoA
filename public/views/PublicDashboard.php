@@ -45,7 +45,8 @@
                 <a href="admin">Admin</a>
             <?php endif; ?>
             <?php if ($isLoggedIn): ?>
-                <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($username); ?></a>
+                <a class="logged-in" href="profile"><?php echo htmlspecialchars($username); ?></a>
+                <a href="logout">Logout</a>
             <?php else: ?>
                 <a href="login">Login</a>
             <?php endif; ?>
@@ -55,33 +56,12 @@
     <main class="dashboard-main">
         <div class="dashboard-content">
             <div class="sidebar">
-                <section class="panel">
-                    <h2>Active Events</h2>
-                    <?php if (empty($events)): ?>
-                        <p class="empty-state">No active emergencies.</p>
-                    <?php else: ?>
-                        <ul class="event-list">
-                            <?php foreach ($events as $event): ?>
-                                <li class="event-item severity-<?php echo htmlspecialchars($event['severity']); ?>"
-                                    data-lat="<?php echo htmlspecialchars($event['latitude']); ?>"
-                                    data-lng="<?php echo htmlspecialchars($event['longitude']); ?>">
-                                    <strong><?php echo htmlspecialchars($event['title']); ?></strong>
-                                    <span class="badge badge-<?php echo htmlspecialchars($event['event_type']); ?>">
-                                        <?php echo htmlspecialchars($event['event_type']); ?>
-                                    </span>
-                                    <span class="badge badge-severity-<?php echo htmlspecialchars($event['severity']); ?>">
-                                        <?php echo htmlspecialchars($event['severity']); ?>
-                                    </span>
-                                    <small><?php echo htmlspecialchars($event['started_at']); ?></small>
-                                    <p><?php echo htmlspecialchars(mb_strimwidth($event['description'] ?? '', 0, 100, '...')); ?>
-                                    </p>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endif; ?>
-                </section>
-
-                <section class="panel">
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-target="panel-events">Events</button>
+                    <button class="sidebar-tab" data-target="shelterPanel">Shelters</button>
+                    <button class="sidebar-tab" data-target="routesPanel">Routes</button>
+                </div>
+                <section class="panel" id="shelterPanel">
                     <h2>Nearby Shelters</h2>
                     <div class="location-controls">
                         <button id="locateBtn" class="btn">Find shelters</button>
@@ -106,11 +86,37 @@
                     </div>
                 </section>
 
-                <section class="panel">
+                <section class="panel" id="routesPanel">
                     <h2>Evacuation Routes</h2>
                     <div id="routeList" class="route-list">
                         <p class="empty-state">Detect your location to see evacuation routes.</p>
                     </div>
+                </section>
+
+                <section class="panel" id="panel-events">
+                    <h2>Active Events</h2>
+                    <?php if (empty($events)): ?>
+                        <p class="empty-state">No active emergencies.</p>
+                    <?php else: ?>
+                        <ul class="event-list">
+                            <?php foreach ($events as $event): ?>
+                                <li class="event-item severity-<?php echo htmlspecialchars($event['severity']); ?>"
+                                    data-lat="<?php echo htmlspecialchars($event['latitude']); ?>"
+                                    data-lng="<?php echo htmlspecialchars($event['longitude']); ?>">
+                                    <strong><?php echo htmlspecialchars($event['title']); ?></strong>
+                                    <span class="badge badge-<?php echo htmlspecialchars($event['event_type']); ?>">
+                                        <?php echo htmlspecialchars($event['event_type']); ?>
+                                    </span>
+                                    <span class="badge badge-severity-<?php echo htmlspecialchars($event['severity']); ?>">
+                                        <?php echo htmlspecialchars($event['severity']); ?>
+                                    </span>
+                                    <small><?php echo htmlspecialchars($event['started_at']); ?></small>
+                                    <p><?php echo htmlspecialchars(mb_strimwidth($event['description'] ?? '', 0, 100, '...')); ?>
+                                    </p>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
                 </section>
             </div>
 
@@ -151,6 +157,10 @@
         var unreadNotificationCount = <?php echo (int) $unreadCount; ?>;
         var isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
         var currentUserId = <?php echo $currentUserId !== null ? (int) $currentUserId : 'null'; ?>;
+        var profileRadius = <?php echo $profileRadius !== null ? (int) $profileRadius : 'null'; ?>;
+        var preferredShelterStatus = <?php echo json_encode($preferredShelterStatus); ?>;
+        var fallbackShelter = <?php echo json_encode($fallbackShelter); ?>;
+        var fallbackDistance = <?php echo $fallbackDistance !== null ? json_encode($fallbackDistance) : 'null'; ?>;
     </script>
     <script src="dashboard.js"></script>
 </body>
