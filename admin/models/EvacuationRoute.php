@@ -34,12 +34,11 @@ class EvacuationRoute
 
     public function update($id, array $data)
     {
-        $data['id'] = $id;
-        return $this->client->request('PATCH', 'routes', $data);
+        return $this->client->request('PATCH', 'routes/' . (int) $id, $data);
     }
 
     public function delete($id)
     {
-        return $this->client->request('DELETE', 'routes', ['id' => $id]);
+        return $this->client->request('DELETE', 'routes/' . (int) $id);
     }
 }

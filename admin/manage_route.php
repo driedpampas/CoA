@@ -47,7 +47,7 @@ if ($method === 'DELETE') {
     exit;
 }
 
-if ($method === 'PATCH' || $method === 'PUT') {
+if ($method === 'PATCH') {
     $allowedStatus = ['active', 'blocked', 'closed'];
 
     $name = trim(filter_var($input['name'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));

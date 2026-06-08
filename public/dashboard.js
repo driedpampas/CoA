@@ -686,7 +686,7 @@ setTimeout(function () {
 		if (!isLoggedIn) return;
 
 		fetch("api/auth/update-location", {
-			method: "POST",
+			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -962,7 +962,7 @@ setTimeout(function () {
 
 		if (markAllReadBtn) {
 			markAllReadBtn.addEventListener("click", () => {
-				fetch("api/notifications/read-all", { method: "POST" })
+				fetch("api/notifications/read-all", { method: "PATCH" })
 					.then((r) => r.json())
 					.then(() => {
 						serverUnreadCount = 0;
@@ -997,7 +997,7 @@ setTimeout(function () {
 					return;
 				}
 
-				fetch(`api/notifications/${id}/read`, { method: "POST" })
+				fetch(`api/notifications/${id}/read`, { method: "PATCH" })
 					.then((r) => r.json())
 					.then(() => {
 						fetchNotifications();

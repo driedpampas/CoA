@@ -58,12 +58,6 @@ class Auth
             case 'reset-password':
                 self::resetPassword($accountModel);
                 break;
-            case 'shelter-status':
-                self::shelterStatus($accountModel);
-                break;
-            case 'nearest-open-shelter':
-                self::nearestOpenShelter($accountModel);
-                break;
             default:
                 \sendJsonResponse(['error' => 'Not found.'], 404);
                 break;
@@ -213,8 +207,8 @@ class Auth
 
     private static function updateLocation($accountModel)
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Allow: POST');
+        if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
+            header('Allow: PATCH');
             \sendJsonResponse(['error' => 'Method not allowed.'], 405);
         }
 
@@ -286,7 +280,7 @@ class Auth
             return;
         }
 
-        if ($method === 'POST') {
+        if ($method === 'PATCH') {
             $input = json_decode(file_get_contents('php://input'), true);
             if (!$input) {
                 $input = $_POST;

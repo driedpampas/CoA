@@ -146,7 +146,7 @@ class Account
     public function updateProfile($userId, $bio, $notificationRadiusKm, $preferredShelterId)
     {
         // DB model returns [success_bool, true_or_error]
-        [$ok, $res] = $this->client->request('POST', 'auth/profile', [
+        [$ok, $res] = $this->client->request('PATCH', 'auth/profile', [
             'bio' => $bio,
             'notification_radius_km' => $notificationRadiusKm,
             'preferred_shelter_id' => $preferredShelterId
@@ -156,14 +156,14 @@ class Account
 
     public function getShelterStatus($shelterId)
     {
-        [$ok, $res] = $this->client->request('GET', 'auth/shelter-status?id=' . urlencode($shelterId));
+        [$ok, $res] = $this->client->request('GET', 'shelters/status?id=' . urlencode($shelterId));
         return $ok ? $res : null;
     }
 
     public function findNearestOpenShelter($lat, $lng, $excludeId = null)
     {
         // DB model returns [success_bool, shelter_row_or_error]
-        $url = 'auth/nearest-open-shelter?lat=' . urlencode($lat) . '&lng=' . urlencode($lng);
+        $url = 'shelters/nearest-open?lat=' . urlencode($lat) . '&lng=' . urlencode($lng);
         if ($excludeId !== null) {
             $url .= '&exclude_id=' . urlencode($excludeId);
         }

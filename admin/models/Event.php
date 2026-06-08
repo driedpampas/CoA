@@ -34,12 +34,11 @@ class Event
 
     public function update($id, array $data)
     {
-        $data['id'] = $id;
-        return $this->client->request('PATCH', 'events', $data);
+        return $this->client->request('PATCH', 'events/' . (int) $id, $data);
     }
 
     public function delete($id)
     {
-        return $this->client->request('DELETE', 'events', ['id' => $id]);
+        return $this->client->request('DELETE', 'events/' . (int) $id);
     }
 }

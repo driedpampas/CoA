@@ -34,8 +34,7 @@ class Shelter
 
     public function update($id, array $data)
     {
-        $data['id'] = $id;
-        return $this->client->request('PATCH', 'shelters', $data);
+        return $this->client->request('PATCH', 'shelters/' . (int) $id, $data);
     }
 
     public function getAll()
@@ -45,6 +44,6 @@ class Shelter
 
     public function delete($id)
     {
-        return $this->client->request('DELETE', 'shelters', ['id' => $id]);
+        return $this->client->request('DELETE', 'shelters/' . (int) $id);
     }
 }

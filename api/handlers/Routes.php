@@ -112,15 +112,15 @@ class Routes
             \sendJsonResponse($res, 201);
         }
 
-        if ($method === 'PATCH' || $method === 'PUT') {
+        if ($method === 'PATCH') {
+            if (!$action || !ctype_digit($action)) {
+                \sendJsonResponse(['error' => 'Route ID is required in the URL.'], 400);
+            }
+
+            $id = (int) $action;
             $input = json_decode(file_get_contents('php://input'), true);
             if (!$input) {
                 $input = $_POST;
-            }
-
-            $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
-            if (!$id) {
-                \sendJsonResponse(['error' => 'Route ID is required.'], 400);
             }
 
             $name = trim(filter_var($input['name'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
@@ -164,24 +164,18 @@ class Routes
         }
 
         if ($method === 'DELETE') {
-            $input = json_decode(file_get_contents('php://input'), true);
-            if (!$input) {
-                $input = $_POST;
+            if (!$action || !ctype_digit($action)) {
+                \sendJsonResponse(['error' => 'Route ID is required in the URL.'], 400);
             }
 
-            $id = filter_var($input['id'] ?? null, FILTER_VALIDATE_INT);
-            if (!$id) {
-                \sendJsonResponse(['error' => 'Route ID is required.'], 400);
-            }
-
-            [$ok, $res] = $routeModel->delete($id);
+            [$ok, $res] = $routeModel->delete((int) $action);
             if (!$ok) {
                 \sendJsonResponse(['error' => $res], 500);
             }
             \sendJsonResponse(['success' => true]);
         }
 
-        header('Allow: GET, POST, PATCH, PUT, DELETE');
+        header('Allow: GET, POST, PATCH, DELETE');
         \sendJsonResponse(['error' => 'Method not allowed.'], 405);
     }
 

@@ -4,7 +4,7 @@ namespace Handlers;
 
 class Events
 {
-    public static function handle($eventModel)
+    public static function handle($eventModel, $id = '')
     {
         $method = $_SERVER['REQUEST_METHOD'];
 
@@ -63,18 +63,17 @@ class Events
             \sendJsonResponse($res, 201);
         }
 
-        if ($method === 'PATCH' || $method === 'PUT') {
+        if ($method === 'PATCH') {
+            if (!$id || !ctype_digit($id)) {
+                \sendJsonResponse(['error' => 'Event ID is required in the URL.'], 400);
+            }
+
             $input = json_decode(file_get_contents('php://input'), true);
             if (!$input) {
                 $input = $_POST;
             }
 
-            $id = $input['id'] ?? null;
-            if (!$id) {
-                \sendJsonResponse(['error' => 'ID is required.'], 400);
-            }
-
-            [$ok, $res] = $eventModel->update($id, $input);
+            [$ok, $res] = $eventModel->update((int) $id, $input);
             if (!$ok) {
                 \sendJsonResponse(['error' => $res], 500);
             }
@@ -82,24 +81,18 @@ class Events
         }
 
         if ($method === 'DELETE') {
-            $input = json_decode(file_get_contents('php://input'), true);
-            if (!$input) {
-                $input = $_POST;
+            if (!$id || !ctype_digit($id)) {
+                \sendJsonResponse(['error' => 'Event ID is required in the URL.'], 400);
             }
 
-            $id = $input['id'] ?? null;
-            if (!$id) {
-                \sendJsonResponse(['error' => 'ID is required.'], 400);
-            }
-
-            [$ok, $res] = $eventModel->delete($id);
+            [$ok, $res] = $eventModel->delete((int) $id);
             if (!$ok) {
                 \sendJsonResponse(['error' => $res], 500);
             }
             \sendJsonResponse(['success' => true]);
         }
 
-        header('Allow: GET, POST, PATCH, PUT, DELETE');
+        header('Allow: GET, POST, PATCH, DELETE');
         \sendJsonResponse(['error' => 'Method not allowed.'], 405);
     }
 }

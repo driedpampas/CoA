@@ -47,7 +47,7 @@ if ($method === 'DELETE') {
     exit;
 }
 
-if ($method === 'PATCH' || $method === 'PUT') {
+if ($method === 'PATCH') {
     $allowedTypes = ['earthquake','flood','fire','storm','other'];
     $allowedSev = ['low','moderate','high','extreme'];
     $allowedStatus = ['active', 'resolved'];

@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../config/db.php';
-
-$eventModel = new \Models\Event($mysql);
-
-[$ok, $events] = $eventModel->getAllForCapFeed();
-$events = $ok ? $events : [];
-
 header('Content-Type: application/xml; charset=utf-8');
+
+if (!isset($eventModel)) {
+    echo '<?xml version="1.0" encoding="UTF-8"?><error>event model not available</error>';
+    exit;
+}
+
+[$ok, $events] = $eventModel->getActive();
+$events = $ok ? $events : [];
 
 $doc = new DOMDocument('1.0', 'UTF-8');
 $doc->formatOutput = true;
@@ -23,9 +23,9 @@ foreach ($events as $event) {
     $expires = gmdate('c', strtotime($event['started_at'] . ' +24 hours'));
 
     $severityMap = [
-        'minor' => 'Minor',
+        'low' => 'Minor',
         'moderate' => 'Moderate',
-        'severe' => 'Severe',
+        'high' => 'Severe',
         'extreme' => 'Extreme',
     ];
     $urgencyMap = [

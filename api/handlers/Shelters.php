@@ -4,7 +4,7 @@ namespace Handlers;
 
 class Shelters
 {
-    public static function handle($shelterModel, $action)
+    public static function handle($shelterModel, $action, $accountModel = null)
     {
         $method = $_SERVER['REQUEST_METHOD'];
 
@@ -21,6 +21,31 @@ class Shelters
                 \sendJsonResponse($ok ? $shelters : []);
             }
 
+            if ($action === 'nearest-open') {
+                $lat = filter_input(INPUT_GET, 'lat', FILTER_VALIDATE_FLOAT);
+                $lng = filter_input(INPUT_GET, 'lng', FILTER_VALIDATE_FLOAT);
+                $excludeId = filter_input(INPUT_GET, 'exclude_id', FILTER_VALIDATE_INT);
+
+                if ($lat === false || $lng === false || $lat === null || $lng === null) {
+                    \sendJsonResponse(['error' => 'Invalid or missing lat/lng parameters.'], 400);
+                }
+
+                [$ok, $res] = $accountModel->findNearestOpenShelter($lat, $lng, $excludeId);
+                if (!$ok) {
+                    \sendJsonResponse(['error' => $res], 500);
+                }
+                \sendJsonResponse($res);
+            }
+
+            if ($action === 'status') {
+                $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+                if (!$id) {
+                    \sendJsonResponse(['error' => 'Invalid or missing id.'], 400);
+                }
+                $res = $accountModel->getShelterStatus($id);
+                \sendJsonResponse($res);
+            }
+
             if ($action !== '' && ctype_digit($action)) {
                 [$ok, $shelter] = $shelterModel->findById((int) $action);
 
@@ -31,7 +56,6 @@ class Shelters
                 \sendJsonResponse($shelter);
             }
 
-            // Check if pagination was requested
             $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT);
             $size = filter_input(INPUT_GET, 'size', FILTER_VALIDATE_INT);
 
@@ -70,18 +94,17 @@ class Shelters
             \sendJsonResponse($res, 201);
         }
 
-        if ($method === 'PATCH' || $method === 'PUT') {
+        if ($method === 'PATCH') {
+            if (!$action || !ctype_digit($action)) {
+                \sendJsonResponse(['error' => 'Shelter ID is required in the URL.'], 400);
+            }
+
             $input = json_decode(file_get_contents('php://input'), true);
             if (!$input) {
                 $input = $_POST;
             }
 
-            $id = $input['id'] ?? null;
-            if (!$id) {
-                \sendJsonResponse(['error' => 'ID is required.'], 400);
-            }
-
-            [$ok, $res] = $shelterModel->update($id, $input);
+            [$ok, $res] = $shelterModel->update((int) $action, $input);
             if (!$ok) {
                 \sendJsonResponse(['error' => $res], 500);
             }
@@ -89,24 +112,18 @@ class Shelters
         }
 
         if ($method === 'DELETE') {
-            $input = json_decode(file_get_contents('php://input'), true);
-            if (!$input) {
-                $input = $_POST;
+            if (!$action || !ctype_digit($action)) {
+                \sendJsonResponse(['error' => 'Shelter ID is required in the URL.'], 400);
             }
 
-            $id = $input['id'] ?? null;
-            if (!$id) {
-                \sendJsonResponse(['error' => 'ID is required.'], 400);
-            }
-
-            [$ok, $res] = $shelterModel->delete($id);
+            [$ok, $res] = $shelterModel->delete((int) $action);
             if (!$ok) {
                 \sendJsonResponse(['error' => $res], 500);
             }
             \sendJsonResponse(['success' => true]);
         }
 
-        header('Allow: GET, POST, PATCH, PUT, DELETE');
+        header('Allow: GET, POST, PATCH, DELETE');
         \sendJsonResponse(['error' => 'Method not allowed.'], 405);
     }
 }

@@ -27,8 +27,8 @@ class Notifications
         }
 
         if ($action === 'read-all') {
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                header('Allow: POST');
+            if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
+                header('Allow: PATCH');
                 \sendJsonResponse(['error' => 'Method not allowed.'], 405);
             }
 
@@ -44,8 +44,8 @@ class Notifications
             $id = (int) $action;
 
             if ($sub === 'read') {
-                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                    header('Allow: POST');
+                if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
+                    header('Allow: PATCH');
                     \sendJsonResponse(['error' => 'Method not allowed.'], 405);
                 }
 

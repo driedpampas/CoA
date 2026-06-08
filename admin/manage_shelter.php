@@ -47,7 +47,7 @@ if ($method === 'DELETE') {
     exit;
 }
 
-if ($method === 'PATCH' || $method === 'PUT') {
+if ($method === 'PATCH') {
     $name = trim(filter_var($input['name'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
     $address = trim(filter_var($input['address'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
     $latitude = isset($input['latitude']) ? filter_var($input['latitude'], FILTER_VALIDATE_FLOAT) : false;
