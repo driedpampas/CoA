@@ -345,11 +345,21 @@ class Account
         ]];
     }
 
-    public function getUsersInRadius($latitude, $longitude, $radius = 1)
+    public function getUsersInRadius($latitude, $longitude, $radiusMeters = 25000)
     {
+        $latitude = (float) $latitude;
+        $longitude = (float) $longitude;
+        $radiusMeters = (float) $radiusMeters;
+
+        $metersPerDegLat = 111320;
+        $metersPerDegLng = $metersPerDegLat * cos(deg2rad($latitude));
+
+        $maxDeltaLat = $radiusMeters / $metersPerDegLat;
+        $maxDeltaLng = $radiusMeters / $metersPerDegLng;
+        $maxDiagonal = sqrt($maxDeltaLat * $maxDeltaLat + $maxDeltaLng * $maxDeltaLng);
+
         if (!($stmt = $this->mysql->prepare(
-            "SELECT id
-             FROM auth
+            "SELECT id FROM auth
              WHERE last_latitude IS NOT NULL
                AND last_longitude IS NOT NULL
                AND SQRT(
@@ -357,22 +367,19 @@ class Account
                     POW(last_longitude - ?, 2)
                ) <= ?"
         ))) {
-            return [false, 'Eroare la pregătirea interogării.'];
+            return [false, 'Error preparing query: ' . $this->mysql->error];
         }
 
-        $latitude = (float) $latitude;
-        $longitude = (float) $longitude;
-        $radius = (float) $radius;
-        if (!$stmt->bind_param('ddd', $latitude, $longitude, $radius)) {
-            return [false, 'Eroare la legarea parametrilor.'];
+        if (!$stmt->bind_param('ddd', $latitude, $longitude, $maxDiagonal)) {
+            return [false, 'Error binding parameters: ' . $this->mysql->error];
         }
 
         if (!$stmt->execute()) {
-            return [false, 'Eroare la executarea interogării.'];
+            return [false, 'Error executing query: ' . $this->mysql->error];
         }
 
         if (!($result = $stmt->get_result())) {
-            return [false, 'Eroare la preluarea rezultatelor.'];
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
         }
 
         $ids = [];

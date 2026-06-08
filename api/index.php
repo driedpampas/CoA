@@ -38,7 +38,7 @@ $identifier = $routeLevels[3] ?? '';
 
 switch ($resource) {
     case 'events':
-        \Handlers\Events::handle($eventModel, $accountModel, $notificationModel, $currentUserId);
+        \Handlers\Events::handle($eventModel);
         break;
 
     case 'shelters':

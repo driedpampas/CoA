@@ -57,7 +57,7 @@ switch ($page) {
 
         switch ($resource) {
             case 'events':
-                \Handlers\Events::handle($eventModel, $accountModel, $notificationModel, $currentUserId);
+                \Handlers\Events::handle($eventModel);
                 break;
             case 'shelters':
                 \Handlers\Shelters::handle($shelterModel, $action);

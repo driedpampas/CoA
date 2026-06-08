@@ -17,7 +17,7 @@ var mapEventWindowInput = document.querySelector("#eventWindowDays");
 
 var MOCK_LAT = 47.1835;
 var MOCK_LNG = 27.5644;
-var PROXIMITY_RADIUS_UNITS = 1;
+var PROXIMITY_RADIUS_KM = 25;
 var serverNotificationsData = [];
 var serverUnreadCount = 0;
 var liveNotificationsStorageKey =
@@ -373,7 +373,7 @@ function checkEventProximity() {
 	eventsData.forEach((event) => {
 		if (!event.latitude || !event.longitude) return;
 		if (event.status !== "active") return;
-		var dist = coordinateDistance(
+		var dist = haversineDistance(
 			userLat,
 			userLng,
 			parseFloat(event.latitude),
@@ -385,7 +385,7 @@ function checkEventProximity() {
 		}
 	});
 
-	if (nearestEvent && nearestDist <= PROXIMITY_RADIUS_UNITS) {
+	if (nearestEvent && nearestDist <= PROXIMITY_RADIUS_KM) {
 		if (!proximityActive) {
 			proximityActive = true;
 			triggerProximityAlert(nearestEvent, nearestDist);
@@ -399,12 +399,12 @@ function checkEventProximity() {
 }
 
 function triggerProximityAlert(event, distance) {
-	console.log(
+		console.log(
 		"[Proximity] Alert triggered for:",
 		event.title,
 		"at",
 		distance.toFixed(1),
-		"units",
+		"km",
 	);
 
 	var header = document.querySelector(".dashboard-header");
@@ -461,7 +461,7 @@ function getNearbyEventDistance(event) {
 	if (userLat === null || userLng === null) return null;
 	if (!event || event.latitude === null || event.longitude === null) return null;
 
-	return coordinateDistance(
+	return haversineDistance(
 		userLat,
 		userLng,
 		parseFloat(event.latitude),
@@ -518,7 +518,7 @@ function syncLiveNotificationsFromEvents() {
 		if (event.latitude === null || event.longitude === null) return;
 
 		var distance = getNearbyEventDistance(event);
-		if (distance === null || distance > PROXIMITY_RADIUS_UNITS) return;
+		if (distance === null || distance > PROXIMITY_RADIUS_KM) return;
 
 		var eventKey = getLiveNotificationKey(event);
 		if (!eventKey) return;
