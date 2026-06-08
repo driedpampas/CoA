@@ -295,9 +295,41 @@ setTimeout(function () {
 								? `${route.distance_from_point} m`
 								: `${(route.distance_from_point / 1000).toFixed(1)} km`;
 						var div = document.createElement("div");
-						div.className = "route-item";
+						div.className = `route-item status-${route.status}`;
 						div.setAttribute("data-route-id", route.id);
-						div.innerHTML = `<strong>${route.name}</strong><span class='badge badge-status-${route.status}'>${route.status}</span><small>To: ${route.shelter_name}</small><small>Duration: ~${route.estimated_minutes} min | ${dist}</small>`;
+						if (route.route_geometry && route.route_geometry.length > 0) {
+							div.setAttribute("data-lat", route.route_geometry[0][0]);
+							div.setAttribute("data-lng", route.route_geometry[0][1]);
+						}
+						div.innerHTML = `
+							<div class="route-header">
+								<strong>${route.name}</strong>
+								<span class="badge badge-status-${route.status}">${route.status}</span>
+							</div>
+							<div class="route-meta">
+								<div class="route-meta-row">
+									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+										<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+										<circle cx="12" cy="10" r="3"/>
+									</svg>
+									<span>To: <span class="route-destination">${route.shelter_name}</span></span>
+								</div>
+								<div class="route-meta-row">
+									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+										<circle cx="12" cy="12" r="10"/>
+										<polyline points="12 6 12 12 16 14"/>
+									</svg>
+									<span>~${route.estimated_minutes} min</span>
+									<span class="bullet-separator">•</span>
+									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+										<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+										<line x1="9" y1="3" x2="9" y2="18"/>
+										<line x1="15" y1="6" x2="15" y2="21"/>
+									</svg>
+									<span>${dist}</span>
+								</div>
+							</div>
+						`;
 						routeListEl.appendChild(div);
 					});
 				}
