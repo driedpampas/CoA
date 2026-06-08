@@ -18,6 +18,21 @@
 	--purple: #6d28d9;
 	--red: #b42318;
 	--red-hover: #7a271a;
+	--table-hover: rgba(15, 23, 42, 0.02);
+}
+
+html[data-theme="dark"] {
+	--bg: #12121e;
+	--panel: #1e1e2f;
+	--panel-border: #2d3748;
+	--ink: #e2e8f0;
+	--muted: #94a3b8;
+	--navy: #2d3748;
+	--navy-2: #1e1e2f;
+	--green: #166534;
+	--green-hover: #15803d;
+	--purple: #8b5cf6;
+	--table-hover: rgba(255, 255, 255, 0.02);
 }
 
 body {
@@ -437,7 +452,7 @@ body.modal-open {
 }
 
 .dashboard-table th {
-	background: #101828;
+	background: var(--navy-2);
 	color: #fff;
 	font-weight: 700;
 	position: static;
@@ -445,11 +460,11 @@ body.modal-open {
 }
 
 .dashboard-table tr:hover td {
-	background: rgba(15, 23, 42, 0.02);
+	background: var(--table-hover);
 }
 
 .dashboard-table td {
-	background: #fff;
+	background: var(--panel);
 }
 
 .sort-link {
@@ -970,3 +985,75 @@ textarea {
 		overflow: visible;
 	}
 }
+
+/* Theme Toggle Button */
+.theme-toggle {
+	background: none;
+	border: none;
+	color: #e0e0e0;
+	cursor: pointer;
+	padding: 0.35rem;
+	border-radius: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: color 0.2s ease, background-color 0.2s ease;
+	margin-left: 1rem;
+}
+
+.theme-toggle:hover {
+	color: #fff;
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle .sun-icon {
+	display: block;
+}
+
+.theme-toggle .moon-icon {
+	display: none;
+}
+
+html[data-theme="dark"] .theme-toggle .sun-icon {
+	display: none;
+}
+
+html[data-theme="dark"] .theme-toggle .moon-icon {
+	display: block;
+}
+
+/* Dark mode inputs and panels adjustments in admin */
+html[data-theme="dark"] .admin-tab.active {
+	background: var(--navy-2);
+	color: #fff;
+}
+
+html[data-theme="dark"] .toolbar-search,
+html[data-theme="dark"] .toolbar-size {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .modal-card {
+	background: var(--panel);
+	color: var(--ink);
+}
+
+html[data-theme="dark"] select,
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] input[type="search"],
+html[data-theme="dark"] textarea {
+	background: #1e1e2f;
+	color: var(--ink);
+	border: 1px solid var(--panel-border);
+}
+
+html[data-theme="dark"] .admin-tab {
+	color: var(--ink);
+}
+
+html[data-theme="dark"] .btn-actions-toggle {
+	background: var(--panel);
+	color: var(--ink);
+}
+
