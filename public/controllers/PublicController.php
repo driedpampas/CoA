@@ -153,6 +153,7 @@ switch ($page) {
         $shelterStatus = null;
         $fallbackShelter = null;
         $fallbackDistance = null;
+        $preferredShelterDistance = null;
         $sheltersForDropdown = [];
 
         if ($currentUserId) {
@@ -162,21 +163,37 @@ switch ($page) {
             [$okS, $sheltersForDropdown] = $shelterModel->getAll();
             $sheltersForDropdown = $okS ? $sheltersForDropdown : [];
 
-            if ($profile && !empty($profile['preferred_shelter_id'])) {
-                $shelterStatus = $accountModel->getShelterStatus((int) $profile['preferred_shelter_id']);
-                if (!empty($shelterStatus) && ($shelterStatus['status'] === 'full' || $shelterStatus['status'] === 'closed')) {
-                    if (!empty($profile['last_latitude']) && !empty($profile['last_longitude'])) {
-                        [$ok, $fallbackShelter] = $accountModel->findNearestOpenShelter(
-                            $profile['last_latitude'],
-                            $profile['last_longitude'],
-                            (int) $profile['preferred_shelter_id']
-                        );
-                        if ($ok && $fallbackShelter) {
-                            $fallbackDistance = haversineDistanceApprox(
+            if ($profile) {
+                if (!empty($profile['preferred_shelter_id'])) {
+                    $preferredShelterId = (int) $profile['preferred_shelter_id'];
+                    $shelterStatus = $accountModel->getShelterStatus($preferredShelterId);
+
+                    if (!empty($shelterStatus) && ($shelterStatus['status'] === 'full' || $shelterStatus['status'] === 'closed')) {
+                        if (!empty($profile['last_latitude']) && !empty($profile['last_longitude'])) {
+                            [$ok, $fallbackShelter] = $accountModel->findNearestOpenShelter(
+                                $profile['last_latitude'],
+                                $profile['last_longitude'],
+                                $preferredShelterId
+                            );
+                            if ($ok && $fallbackShelter) {
+                                $fallbackDistance = haversineDistanceApprox(
+                                    (float) $profile['last_latitude'],
+                                    (float) $profile['last_longitude'],
+                                    (float) $fallbackShelter['latitude'],
+                                    (float) $fallbackShelter['longitude']
+                                );
+                            }
+                        }
+                    }
+
+                    if (!empty($profile['last_latitude']) && !empty($profile['last_longitude']) && $preferredShelterId) {
+                        [$ok, $preferredShelter] = $shelterModel->findById($preferredShelterId);
+                        if ($ok && $preferredShelter) {
+                            $preferredShelterDistance = haversineDistanceApprox(
                                 (float) $profile['last_latitude'],
                                 (float) $profile['last_longitude'],
-                                (float) $fallbackShelter['latitude'],
-                                (float) $fallbackShelter['longitude']
+                                (float) $preferredShelter['latitude'],
+                                (float) $preferredShelter['longitude']
                             );
                         }
                     }

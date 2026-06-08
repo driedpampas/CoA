@@ -61,7 +61,7 @@
                     <button class="sidebar-tab" data-target="shelterPanel">Shelters</button>
                     <button class="sidebar-tab" data-target="routesPanel">Routes</button>
                 </div>
-                <section class="panel" id="shelterPanel">
+                <section class="panel" id="shelterPanel" style="display:none;">
                     <h2>Nearby Shelters</h2>
                     <div class="location-controls">
                         <button id="locateBtn" class="btn">Find shelters</button>
@@ -86,7 +86,7 @@
                     </div>
                 </section>
 
-                <section class="panel" id="routesPanel">
+                <section class="panel" id="routesPanel" style="display:none;">
                     <h2>Evacuation Routes</h2>
                     <div id="routeList" class="route-list">
                         <p class="empty-state">Detect your location to see evacuation routes.</p>
@@ -123,16 +123,18 @@
             <div class="map-container">
                 <div id="map"></div>
                 <div id="layerControls" class="layer-controls">
-                    <strong>Layers</strong>
-                    <label><input type="checkbox" id="toggleEvents" checked> Events</label>
-                    <label><input type="checkbox" id="toggleShelters" checked> Shelters</label>
-                    <label><input type="checkbox" id="toggleUser" checked> My Location</label>
-                    <label><input type="checkbox" id="toggleRoutes" checked> Routes</label>
-                    <label class="map-window-control" for="eventWindowDays">
-                        <span>Event window</span>
-                        <input id="eventWindowDays" type="number" min="1" max="30" step="1" value="1">
-                        <small>Days on map, up to 30</small>
-                    </label>
+                    <button id="layerToggle" class="layer-toggle" type="button">Layers ▾</button>
+                    <div id="layerContent" class="layer-content">
+                        <label><input type="checkbox" id="toggleEvents" checked> Events</label>
+                        <label><input type="checkbox" id="toggleShelters" checked> Shelters</label>
+                        <label><input type="checkbox" id="toggleUser" checked> My Location</label>
+                        <label><input type="checkbox" id="toggleRoutes" checked> Routes</label>
+                        <label class="map-window-control" for="eventWindowDays">
+                            <span>Time range</span>
+                            <input id="eventWindowDays" type="number" min="1" max="30" step="1" value="1">
+                            <small>days back, up to 30</small>
+                        </label>
+                    </div>
                 </div>
                 <button id="centerOnMe" class="map-btn center-on-me-btn" title="Center on my location">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

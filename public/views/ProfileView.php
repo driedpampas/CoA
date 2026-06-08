@@ -129,6 +129,9 @@
             <?php if ($shelterStatus && ($shelterStatus['status'] === 'full' || $shelterStatus['status'] === 'closed')): ?>
                 <div class="notice notice-critical">
                     <strong>Your preferred shelter (<?php echo htmlspecialchars($shelterStatus['name']); ?>) is currently <?php echo htmlspecialchars($shelterStatus['status']); ?>.</strong>
+                    <?php if ($preferredShelterDistance !== null): ?>
+                        <p style="margin-top:0.5rem;">It is approx. <?php echo htmlspecialchars(number_format($preferredShelterDistance, 1)); ?> km away from your last known location.</p>
+                    <?php endif; ?>
                     <?php if ($fallbackShelter): ?>
                         <p style="margin-top:0.5rem;">
                             nearest open alternative: <strong><?php echo htmlspecialchars($fallbackShelter['name']); ?></strong>
@@ -143,6 +146,9 @@
             <?php elseif ($shelterStatus && $shelterStatus['status'] === 'open'): ?>
                 <div class="notice" style="background:#e8f5e9;border-left-color:#2e7d32;color:#1b5e20;">
                     Preferred shelter: <strong><?php echo htmlspecialchars($shelterStatus['name']); ?></strong> — open (capacity <?php echo htmlspecialchars($shelterStatus['current_occupancy'] . ' / ' . $shelterStatus['capacity']); ?>).
+                    <?php if ($preferredShelterDistance !== null): ?>
+                        approx. <?php echo htmlspecialchars(number_format($preferredShelterDistance, 1)); ?> km away from your last known location.
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 
