@@ -40,7 +40,6 @@
             </button>
         </div>
         <nav id="headerNav">
-            <a href="cap-feed" target="_blank">CAP Feed</a>
             <?php if (!empty($isAdmin)): ?>
                 <a href="admin">Admin</a>
             <?php endif; ?>

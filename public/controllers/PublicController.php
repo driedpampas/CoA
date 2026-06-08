@@ -36,8 +36,8 @@ function haversineDistanceApprox($lat1, $lng1, $lat2, $lng2)
     $dLat = deg2rad($lat2 - $lat1);
     $dLng = deg2rad($lng2 - $lng1);
     $a = sin($dLat / 2) * sin($dLat / 2) +
-         cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-         sin($dLng / 2) * sin($dLng / 2);
+        cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+        sin($dLng / 2) * sin($dLng / 2);
     $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
     return $R * $c;
 }
@@ -108,12 +108,13 @@ switch ($page) {
                     $userLat = (float) $profile['last_latitude'];
                     $userLng = (float) $profile['last_longitude'];
                     $events = array_values(array_filter($events, function ($event) use ($userLat, $userLng, $radMeters) {
-                        if (empty($event['latitude']) || empty($event['longitude'])) return false;
+                        if (empty($event['latitude']) || empty($event['longitude']))
+                            return false;
                         $dLat = deg2rad((float) $event['latitude'] - $userLat);
                         $dLng = deg2rad((float) $event['longitude'] - $userLng);
                         $a = sin($dLat / 2) * sin($dLat / 2) +
-                             cos(deg2rad($userLat)) * cos(deg2rad((float) $event['latitude'])) *
-                             sin($dLng / 2) * sin($dLng / 2);
+                            cos(deg2rad($userLat)) * cos(deg2rad((float) $event['latitude'])) *
+                            sin($dLng / 2) * sin($dLng / 2);
                         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
                         return (6371 * $c) * 1000 <= $radMeters;
                     }));
@@ -190,11 +191,6 @@ switch ($page) {
 
         include __DIR__ . '/../views/ProfileView.php';
         break;
-    }
-
-    case 'cap-feed': {
-        require __DIR__ . '/../feeds/CapFeed.php';
-        exit;
     }
 
     default: {

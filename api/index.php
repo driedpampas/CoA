@@ -61,6 +61,16 @@ switch ($resource) {
         \Handlers\Export::handle($eventModel, $shelterModel, $routeModel);
         break;
 
+    case 'feeds':
+        switch ($action) {
+            case 'cap':
+                \Handlers\CapFeed::handle($eventModel);
+                break;
+            default:
+                sendJsonResponse(['error' => 'Not found.'], 404);
+        }
+        break;
+
     case 'import':
         \Handlers\Import::handle($eventModel, $shelterModel, $accountModel);
         break;

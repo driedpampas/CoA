@@ -6,5 +6,5 @@ vendor/
 /.phpunit.result.cache
 AGENTS.md
 config/resend.php
-.htaccess
+/.htaccess
 .kilo/

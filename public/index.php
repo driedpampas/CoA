@@ -7,7 +7,6 @@ $route = $routeRoot;
 
 switch ($routeRoot) {
     case 'dashboard':
-    case 'cap-feed':
     case 'profile':
         require __DIR__ . '/controllers/PublicController.php';
         break;
@@ -17,17 +16,7 @@ switch ($routeRoot) {
         break;
 
     case 'admin':
-        if ($routeLeaf === 'submit_event') {
-            require __DIR__ . '/../admin/submit_event.php';
-        } elseif ($routeLeaf === 'submit_shelter') {
-            require __DIR__ . '/../admin/submit_shelter.php';
-        } elseif ($routeLeaf === 'manage_event') {
-            require __DIR__ . '/../admin/manage_event.php';
-        } elseif ($routeLeaf === 'manage_shelter') {
-            require __DIR__ . '/../admin/manage_shelter.php';
-        } else {
-            require __DIR__ . '/../admin/index.php';
-        }
+        require __DIR__ . '/../admin/index.php';
         break;
 
     case 'login':

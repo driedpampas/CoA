@@ -1,51 +1,13 @@
-<?php
-$currentPageKey = $activeTab . '_page';
-$currentSizeKey = $activeTab . '_size';
-$currentSearchKey = $activeTab . '_q';
-$currentSortKey = $activeTab . '_sort';
-$currentDirKey = $activeTab . '_dir';
-$currentSortField = $activeTab === 'events' ? $eventsSort : ($activeTab === 'shelters' ? $sheltersSort : $routesSort);
-$currentSortDir = $activeTab === 'events' ? $eventsSortDir : ($activeTab === 'shelters' ? $sheltersSortDir : $routesSortDir);
-$currentSearchValue = $activeTab === 'events' ? $eventsSearch : ($activeTab === 'shelters' ? $sheltersSearch : $routesSearch);
-$currentPageSize = $activeTab === 'events' ? $eventsPageSize : ($activeTab === 'shelters' ? $sheltersPageSize : $routesPageSize);
-
-if ($activeTab === 'events') {
-    $currentEntityLabel = 'Disaster Event';
-    $currentEntityLabelPlural = 'Disaster Events';
-    $currentSearchPlaceholder = 'Search title or description';
-} elseif ($activeTab === 'shelters') {
-    $currentEntityLabel = 'Shelter';
-    $currentEntityLabelPlural = 'Shelters';
-    $currentSearchPlaceholder = 'Search name or address';
-} else {
-    $currentEntityLabel = 'Evacuation Route';
-    $currentEntityLabelPlural = 'Evacuation Routes';
-    $currentSearchPlaceholder = 'Search name or shelter';
-}
-
-$sortLink = function (string $tab, string $label, string $field, string $currentField, string $currentDir) {
-    $nextDir = ($currentField === $field && strtolower($currentDir) === 'asc') ? 'desc' : 'asc';
-    $icon = '';
-    if ($currentField === $field) {
-        $icon = $currentDir === 'ASC' ? ' <span class="sort-indicator">&#9650;</span>' : ' <span class="sort-indicator">&#9660;</span>';
-    }
-
-    return '<a class="sort-link" href="' . e(adminUrl([
-        'tab' => $tab,
-        $tab . '_page' => 1,
-        $tab . '_sort' => $field,
-        $tab . '_dir' => $nextDir,
-    ])) . '">' . e($label) . $icon . '</a>';
-};
-?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" content="<?= $csrf ?>">
+    <meta name="active-tab" content="<?= $activeTab ?>">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="/admin.css">
 </head>
 
 <body>
@@ -61,7 +23,7 @@ $sortLink = function (string $tab, string $label, string $field, string $current
     </div>
     <nav id="headerNav">
         <a href="dashboard">Dashboard</a>
-        <a href="login">Logout</a>
+        <a href="/logout">Logout</a>
     </nav>
 </header>
 
@@ -465,7 +427,7 @@ $sortLink = function (string $tab, string $label, string $field, string $current
 
         <div class="modal-message" data-modal-message hidden></div>
 
-        <form class="modal-form <?= $activeTab === 'events' ? 'active' : '' ?>" data-entity-form="events" method="post" action="/admin/submit_event">
+        <form class="modal-form <?= $activeTab === 'events' ? 'active' : '' ?>" data-entity-form="events" method="post" action="/admin/events">
             <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
 
             <div class="form-row">
@@ -510,7 +472,7 @@ $sortLink = function (string $tab, string $label, string $field, string $current
             <button type="submit" class="modal-submit">Add Event</button>
         </form>
 
-        <form class="modal-form <?= $activeTab === 'shelters' ? 'active' : '' ?>" data-entity-form="shelters" method="post" action="/admin/submit_shelter">
+        <form class="modal-form <?= $activeTab === 'shelters' ? 'active' : '' ?>" data-entity-form="shelters" method="post" action="/admin/shelters">
             <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
 
             <div class="form-row">
@@ -561,7 +523,7 @@ $sortLink = function (string $tab, string $label, string $field, string $current
             <button type="submit" class="modal-submit">Add Shelter</button>
         </form>
 
-        <form class="modal-form <?= $activeTab === 'routes' ? 'active' : '' ?>" data-entity-form="routes" method="post" action="/admin/submit_route.php">
+        <form class="modal-form <?= $activeTab === 'routes' ? 'active' : '' ?>" data-entity-form="routes" method="post" action="/admin/routes">
             <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
 
             <div class="form-row">
@@ -645,329 +607,8 @@ $sortLink = function (string $tab, string $label, string $field, string $current
     </div>
 </div>
 
-<script>
-    const GLOBAL_CSRF_TOKEN = '<?= $csrf ?>';
-
-    var menuToggle = document.getElementById("menuToggle");
-    var headerNav = document.getElementById("headerNav");
-    if (menuToggle && headerNav) {
-        menuToggle.addEventListener("click", () => {
-            menuToggle.classList.toggle("open");
-            headerNav.classList.toggle("open");
-        });
-        headerNav.addEventListener("click", (e) => {
-            if (e.target.tagName === "A") {
-                menuToggle.classList.remove("open");
-                headerNav.classList.remove("open");
-            }
-        });
-    }
-
-    const addModal = document.getElementById('addModal');
-    const descriptionModal = document.getElementById('descriptionModal');
-    const addModalTitle = document.getElementById('addModalTitle');
-    const addForms = Array.from(document.querySelectorAll('[data-entity-form]'));
-    const addMessage = document.querySelector('[data-modal-message]');
-    const descriptionTitle = document.getElementById('descriptionModalTitle');
-    const descriptionBody = document.getElementById('descriptionModalBody');
-    const activeTab = '<?= $activeTab ?>';
-    const addButton = document.querySelector('[data-open-add-modal]');
-
-    function openModal(modal) {
-        if (!modal) return;
-        modal.hidden = false;
-        document.body.classList.add('modal-open');
-    }
-
-    function closeModal(modal) {
-        if (!modal) return;
-        modal.hidden = true;
-        document.body.classList.remove('modal-open');
-    }
-
-    function showModalMessage(text, type) {
-        if (!addMessage) return;
-        addMessage.hidden = false;
-        addMessage.textContent = text;
-        addMessage.className = 'modal-message ' + (type === 'success' ? 'success' : 'error');
-    }
-
-    function resetModalMessage() {
-        if (!addMessage) return;
-        addMessage.hidden = true;
-        addMessage.textContent = '';
-        addMessage.className = 'modal-message';
-    }
-
-    function openAddModal() {
-        addForms.forEach(form => {
-            form.classList.toggle('active', form.dataset.entityForm === activeTab);
-        });
-        addModalTitle.textContent = 'Add ' + (activeTab === 'events' ? 'Disaster Event' : (activeTab === 'shelters' ? 'Shelter' : 'Evacuation Route'));
-        resetModalMessage();
-        openModal(addModal);
-    }
-
-    const importModal = document.getElementById('importModal');
-    const importButton = document.querySelector('[data-open-import-modal]');
-    const importMessage = document.querySelector('[data-import-message]');
-    const importForm = document.getElementById('importForm');
-
-    function openImportModal() {
-        resetImportMessage();
-        openModal(importModal);
-    }
-
-    if (importButton) {
-        importButton.addEventListener('click', openImportModal);
-    }
-
-    function resetImportMessage() {
-        if (importMessage) {
-            importMessage.hidden = true;
-            importMessage.textContent = '';
-            importMessage.className = 'modal-message';
-        }
-    }
-
-    function showImportMessage(text, type) {
-        if (!importMessage) return;
-        importMessage.hidden = false;
-        importMessage.textContent = text;
-        importMessage.className = 'modal-message ' + (type === 'success' ? 'success' : 'error');
-    }
-
-    if (addButton) {
-        addButton.addEventListener('click', openAddModal);
-    }
-
-    function closeDescriptionModal() {
-        if (descriptionTitle) {
-            descriptionTitle.textContent = 'Description';
-        }
-        if (descriptionBody) {
-            descriptionBody.textContent = '';
-        }
-        closeModal(descriptionModal);
-    }
-
-    document.querySelectorAll('[data-close-modal]').forEach(btn => btn.addEventListener('click', () => closeModal(addModal)));
-    document.querySelectorAll('[data-close-description]').forEach(btn => btn.addEventListener('click', closeDescriptionModal));
-    document.querySelectorAll('[data-close-import]').forEach(btn => btn.addEventListener('click', () => closeModal(importModal)));
-
-    [addModal, descriptionModal, importModal].forEach(modal => {
-        if (!modal) return;
-        modal.addEventListener('click', (event) => {
-            if (event.target === modal) {
-                if (modal === addModal) {
-                    closeModal(addModal);
-                } else if (modal === importModal) {
-                    closeModal(importModal);
-                } else {
-                    closeDescriptionModal();
-                }
-            }
-        });
-    });
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            if (addModal && !addModal.hidden) closeModal(addModal);
-            if (importModal && !importModal.hidden) closeModal(importModal);
-            if (descriptionModal && !descriptionModal.hidden) closeDescriptionModal();
-        }
-    });
-
-    if (importForm) {
-        importForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const submitButton = importForm.querySelector('.modal-submit');
-            const previousText = submitButton ? submitButton.textContent : 'Import Data';
-            
-            if (submitButton) {
-                submitButton.disabled = true;
-                submitButton.textContent = 'Importing...';
-            }
-            resetImportMessage();
-
-            try {
-                const response = await fetch(importForm.action, {
-                    method: 'POST',
-                    body: new FormData(importForm),
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': GLOBAL_CSRF_TOKEN
-                    }
-                });
-
-                const data = await parseResponseData(response);
-                if (!response.ok || !data || data.success !== true) {
-                    const message = data && data.error ? data.error : 'The server rejected the import request.';
-                    showImportMessage(message, 'error');
-                    return;
-                }
-
-                let msg = `Successfully imported ${data.imported} records.`;
-                if (data.skipped > 0) {
-                    msg += ` Skipped ${data.skipped} records.`;
-                }
-                showImportMessage(msg, 'success');
-                window.setTimeout(() => window.location.reload(), 1500);
-            } catch (error) {
-                showImportMessage('Network error while performing import.', 'error');
-            } finally {
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.textContent = previousText;
-                }
-            }
-        });
-    }
-
-    document.addEventListener('click', (event) => {
-        const descButton = event.target.closest('[data-open-description]');
-        if (descButton) {
-            const title = descButton.dataset.title || 'Description';
-            const description = descButton.dataset.description || '';
-            descriptionTitle.textContent = title;
-            descriptionBody.textContent = description;
-            openModal(descriptionModal);
-        }
-    });
-
-    function toggleEditRow(button) {
-        const tr = button.closest('tr');
-        if (!tr) return;
-        const views = tr.querySelectorAll('.mode-view');
-        const edits = tr.querySelectorAll('.mode-edit');
-        const activeState = (edits[0].style.display === 'none');
-
-        views.forEach(el => el.style.display = activeState ? 'none' : '');
-        edits.forEach(el => el.style.display = activeState ? '' : 'none');
-    }
-
-    function parseResponseData(response) {
-        return response.json().catch(() => null);
-    }
-
-    async function submitAddForm(form) {
-        const endpoint = form.action;
-        const submitButton = form.querySelector('.modal-submit');
-        const previousText = submitButton ? submitButton.textContent : '';
-        const controller = new AbortController();
-        const timeoutMs = 12000;
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-        if (submitButton) {
-            submitButton.disabled = true;
-            submitButton.textContent = 'Saving...';
-        }
-        resetModalMessage();
-
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                body: new FormData(form),
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                signal: controller.signal
-            });
-
-            const data = await parseResponseData(response);
-            if (!response.ok || !data || data.success !== true) {
-                const message = data && data.error ? data.error : 'The server rejected the request.';
-                showModalMessage(message, 'error');
-                return;
-            }
-
-            showModalMessage('Saved successfully. Refreshing data...', 'success');
-            window.setTimeout(() => window.location.reload(), 350);
-        } catch (error) {
-            const message = error && error.name === 'AbortError'
-                ? 'The server did not respond in time.'
-                : 'Network error while saving the record.';
-            showModalMessage(message, 'error');
-        } finally {
-            clearTimeout(timer);
-            if (submitButton) {
-                submitButton.disabled = false;
-                submitButton.textContent = previousText;
-            }
-        }
-    }
-
-    addForms.forEach(form => {
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
-            submitAddForm(form);
-        });
-    });
-
-    function dispatchDelete(entityType, recordId) {
-        if (!confirm(`Are you absolutely sure you want to delete this ${entityType}?`)) return;
-
-        const targets = { 'event': '/admin/manage_event', 'shelter': '/admin/manage_shelter', 'route': '/admin/manage_route.php' };
-        fetch(targets[entityType], {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': GLOBAL_CSRF_TOKEN
-            },
-            body: JSON.stringify({ id: recordId })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Operation failed: ' + (data.error || 'Unknown Error'));
-            })
-            .catch(() => alert('Network processing failure.'));
-    }
-
-    function dispatchUpdate(entityType, recordId, button) {
-        const tr = button.closest('tr');
-        const targets = { 'event': '/admin/manage_event', 'shelter': '/admin/manage_shelter', 'route': '/admin/manage_route.php' };
-        let payload = { id: recordId };
-
-        const inputs = tr.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            const match = input.className.match(/field-(\w+)/);
-            if (match && match[1]) {
-                payload[match[1]] = input.value;
-            }
-        });
-
-        fetch(targets[entityType], {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': GLOBAL_CSRF_TOKEN
-            },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) window.location.reload();
-                else alert('Update aborted: ' + (data.error || 'Validation error'));
-            })
-            .catch(() => alert('Network update error.'));
-    }
-
-    const actionsMenuToggle = document.getElementById('actionsMenuToggle');
-    const actionsMenuContent = document.getElementById('actionsMenuContent');
-    if (actionsMenuToggle && actionsMenuContent) {
-        actionsMenuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            actionsMenuContent.classList.toggle('show');
-        });
-        document.addEventListener('click', (e) => {
-            if (!actionsMenuToggle.contains(e.target)) {
-                actionsMenuContent.classList.remove('show');
-            }
-        });
-    }
-</script>
+<script src="/admin.js" defer></script>
 
 </body>
 </html>
+

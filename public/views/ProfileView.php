@@ -11,9 +11,6 @@
         <div class="header-top">
             <div class="header-brand">
                 <h1>My Profile</h1>
-                <div class="notification-wrapper">
-                    <a href="dashboard" style="color:#e0e0e0;text-decoration:none;font-size:0.9rem;margin-left:0.75rem;">Back to Dashboard</a>
-                </div>
             </div>
             <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation">
                 <span></span>
@@ -22,7 +19,8 @@
             </button>
         </div>
         <nav id="headerNav">
-            <a href="cap-feed" target="_blank">CAP Feed</a>
+
+            <a href="dashboard">Dashboard</a>
             <?php if (!empty($isAdmin)): ?>
                 <a href="admin">Admin</a>
             <?php endif; ?>
