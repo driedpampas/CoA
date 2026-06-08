@@ -57,6 +57,10 @@ switch ($resource) {
         \Handlers\Notifications::handle($notificationModel, $action, $identifier, $currentUserId);
         break;
 
+    case 'export':
+        \Handlers\Export::handle($eventModel, $shelterModel, $routeModel);
+        break;
+
     default:
         sendJsonResponse(['error' => 'Not found.'], 404);
 }

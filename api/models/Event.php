@@ -40,6 +40,34 @@ class Event
         return [true, $events];
     }
 
+    public function getAll()
+    {
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT id, event_type, title, description, severity, latitude, longitude, status, started_at
+                 FROM emergency_events
+                 ORDER BY started_at DESC"
+            ))
+        ) {
+            return [false, 'Error preparing query: ' . $this->mysql->error];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Error executing query: ' . $this->mysql->error];
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
+        }
+
+        $events = [];
+        while ($row = $result->fetch_assoc()) {
+            $events[] = $row;
+        }
+
+        return [true, $events];
+    }
+
     public function getAllForCapFeed()
     {
         if (

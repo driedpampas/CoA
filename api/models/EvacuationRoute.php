@@ -110,4 +110,38 @@ class EvacuationRoute
 
         return $result;
     }
+
+    public function getAll()
+    {
+        if (
+            !($stmt = $this->mysql->prepare(
+                "SELECT er.id, er.name, er.shelter_id, er.from_latitude, er.from_longitude,
+                        er.distance_meters, er.estimated_minutes, er.status, er.notes,
+                        ST_AsText(er.route_geometry) AS route_wkt,
+                        s.name AS shelter_name
+                 FROM evacuation_routes er
+                 JOIN shelters s ON er.shelter_id = s.id
+                 ORDER BY er.distance_meters ASC"
+            ))
+        ) {
+            return [false, 'Error preparing query: ' . $this->mysql->error];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, 'Error executing query: ' . $this->mysql->error];
+        }
+
+        if (!($result = $stmt->get_result())) {
+            return [false, 'Error retrieving result: ' . $this->mysql->error];
+        }
+
+        $routes = [];
+        while ($row = $result->fetch_assoc()) {
+            $row['route_geometry'] = self::parseLineString($row['route_wkt']);
+            unset($row['route_wkt']);
+            $routes[] = $row;
+        }
+
+        return [true, $routes];
+    }
 }
