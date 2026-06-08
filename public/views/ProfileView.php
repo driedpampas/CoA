@@ -64,7 +64,6 @@
         }
         .notice {
             background: #fff3e0;
-            border-left: 4px solid #f57c00;
             padding: 0.85rem 1rem;
             border-radius: 4px;
             margin-bottom: 1.25rem;
@@ -73,7 +72,6 @@
         }
         .notice-critical {
             background: #ffebee;
-            border-left-color: #c62828;
             color: #5d1010;
         }
         .notice a {
@@ -111,7 +109,6 @@
                 <a href="admin">Admin</a>
             <?php endif; ?>
             <?php if ($isLoggedIn): ?>
-                <a class="logged-in" href="login">Logged in as <?php echo htmlspecialchars($username); ?></a>
                 <a href="logout">Logout</a>
             <?php else: ?>
                 <a href="login">Login</a>
