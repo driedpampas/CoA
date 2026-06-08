@@ -1,16 +1,25 @@
 <?php
 require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-$shelterModel = new \Models\Shelter($mysql);
-$routeModel = new \Models\EvacuationRoute($mysql);
-$eventModel = new \Models\Event($mysql);
-$accountModel = new \Models\Account($mysql);
-$notificationModel = new \Models\Notification($mysql);
+require_once __DIR__ . '/../models/HttpClient.php';
+require_once __DIR__ . '/../models/Event.php';
+require_once __DIR__ . '/../models/Shelter.php';
+require_once __DIR__ . '/../models/EvacuationRoute.php';
+require_once __DIR__ . '/../models/Notification.php';
+require_once __DIR__ . '/../models/Account.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$shelterModel = new \Models\Shelter($apiBaseUrl);
+$routeModel = new \Models\EvacuationRoute($apiBaseUrl);
+$eventModel = new \Models\Event($apiBaseUrl);
+$accountModel = new \Models\Account($apiBaseUrl);
+$notificationModel = new \Models\Notification($apiBaseUrl);
 
 if (!empty($_SESSION['isLoggedIn']) && empty($_SESSION['user_id'])) {
     $sessionUserId = $accountModel->getUserId($_SESSION['username'] ?? '');
@@ -116,32 +125,7 @@ switch ($page) {
         break;
     }
 
-    case 'api': {
-        $resource = $routeLevels[1] ?? '';
-        $action = $routeLevels[2] ?? '';
 
-        switch ($resource) {
-            case 'events':
-                \Handlers\Events::handle($eventModel);
-                break;
-            case 'shelters':
-                \Handlers\Shelters::handle($shelterModel, $action);
-                break;
-            case 'routes':
-                \Handlers\Routes::handle($routeModel, $action);
-                break;
-            case 'auth':
-                \Handlers\Auth::handle($accountModel, $action);
-                break;
-            case 'notifications':
-                \Handlers\Notifications::handle($notificationModel, $action, $routeLevels[3] ?? '', $currentUserId);
-                break;
-            default:
-                sendJsonResponse(['error' => 'Not found.'], 404);
-                break;
-        }
-        break;
-    }
 
     case 'profile': {
         if (empty($_SESSION['isLoggedIn'])) {

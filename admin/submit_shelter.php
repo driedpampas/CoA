@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -46,6 +45,14 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrf)) {
     respondAdminSubmit(['success' => false, 'error' => 'Invalid CSRF token'], 400);
 }
 
+require_once __DIR__ . '/models/HttpClient.php';
+require_once __DIR__ . '/models/Shelter.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$shelterModel = new \Models\Shelter($apiBaseUrl);
+
 $name = trim(filter_var($_POST['name'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 $address = trim(filter_var($_POST['address'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 $latitudeRaw = $_POST['latitude'] ?? '';
@@ -72,20 +79,21 @@ if ($name === '' || $address === '' || $latitude === false || $longitude === fal
     respondAdminSubmit(['success' => false, 'error' => 'Missing required fields'], 400);
 }
 
-$point = sprintf('POINT(%F %F)', $longitude, $latitude);
-$stmt = $mysql->prepare("INSERT INTO shelters (name, address, latitude, longitude, geom_point, capacity, current_occupancy, shelter_type, status, contact_phone, notes) VALUES (?, ?, ?, ?, ST_GeomFromText(?, 4326), ?, 0, ?, 'open', ?, ?)");
-if (!$stmt) {
-    respondAdminSubmit(['success' => false, 'error' => 'Database prepare failed'], 500);
-}
+$data = [
+    'name' => $name,
+    'address' => $address,
+    'latitude' => $latitude,
+    'longitude' => $longitude,
+    'capacity' => $capacity,
+    'shelter_type' => $shelter_type,
+    'contact_phone' => $contact_phone,
+    'notes' => $notes,
+];
 
-$stmt->bind_param('ssddsisss', $name, $address, $latitude, $longitude, $point, $capacity, $shelter_type, $contact_phone, $notes);
-
-$ok = $stmt->execute();
-$error = $stmt->error ?? '';
-$stmt->close();
+[$ok, $res] = $shelterModel->create($data);
 
 if (!$ok) {
-    respondAdminSubmit(['success' => false, 'error' => 'Database insert failed: ' . $error], 500);
+    respondAdminSubmit(['success' => false, 'error' => $res], 500);
 }
 
 respondAdminSubmit(['success' => true], 200, true);

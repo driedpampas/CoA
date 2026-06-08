@@ -31,6 +31,39 @@ class Auth
             case 'profile':
                 self::profile($accountModel);
                 break;
+            case 'resolve-username':
+                self::resolveUsername($accountModel);
+                break;
+            case 'is-email-verified':
+                self::isEmailVerified($accountModel);
+                break;
+            case 'role':
+                self::role($accountModel);
+                break;
+            case 'user-id':
+                self::userId($accountModel);
+                break;
+            case 'set-verification-token':
+                self::setVerificationToken($accountModel);
+                break;
+            case 'verify':
+                self::verify($accountModel);
+                break;
+            case 'email':
+                self::email($accountModel);
+                break;
+            case 'verify-reset-token':
+                self::verifyResetToken($accountModel);
+                break;
+            case 'reset-password':
+                self::resetPassword($accountModel);
+                break;
+            case 'shelter-status':
+                self::shelterStatus($accountModel);
+                break;
+            case 'nearest-open-shelter':
+                self::nearestOpenShelter($accountModel);
+                break;
             default:
                 \sendJsonResponse(['error' => 'Not found.'], 404);
                 break;
@@ -283,5 +316,158 @@ class Auth
         }
 
         \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+    }
+
+    private static function resolveUsername($accountModel)
+    {
+        $login = filter_input(INPUT_GET, 'login', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$login) {
+            \sendJsonResponse(['error' => 'Login parameter is required.'], 400);
+        }
+        $username = $accountModel->resolveUsername($login);
+        \sendJsonResponse(['username' => $username]);
+    }
+
+    private static function isEmailVerified($accountModel)
+    {
+        $username = filter_input(INPUT_GET, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$username) {
+            \sendJsonResponse(['error' => 'Username parameter is required.'], 400);
+        }
+        $verified = $accountModel->isEmailVerified($username);
+        \sendJsonResponse(['verified' => $verified]);
+    }
+
+    private static function role($accountModel)
+    {
+        $username = filter_input(INPUT_GET, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$username) {
+            \sendJsonResponse(['error' => 'Username parameter is required.'], 400);
+        }
+        $role = $accountModel->getRole($username);
+        \sendJsonResponse(['role' => $role]);
+    }
+
+    private static function userId($accountModel)
+    {
+        $username = filter_input(INPUT_GET, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$username) {
+            \sendJsonResponse(['error' => 'Username parameter is required.'], 400);
+        }
+        $userId = $accountModel->getUserId($username);
+        \sendJsonResponse(['user_id' => $userId]);
+    }
+
+    private static function setVerificationToken($accountModel)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Allow: POST');
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+        }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $username = trim(filter_var($input['username'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        if (!$username) {
+            \sendJsonResponse(['error' => 'Username is required.'], 400);
+        }
+        [$ok, $tokenOrError] = $accountModel->setVerificationToken($username);
+        if (!$ok) {
+            \sendJsonResponse(['error' => $tokenOrError], 500);
+        }
+        \sendJsonResponse(['token' => $tokenOrError]);
+    }
+
+    private static function verify($accountModel)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Allow: POST');
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+        }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $token = trim(filter_var($input['token'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        if (!$token) {
+            \sendJsonResponse(['error' => 'Token is required.'], 400);
+        }
+        [$ok, $msg] = $accountModel->verifyEmail($token);
+        if ($ok) {
+            $username = $msg;
+            $email = $accountModel->getEmailByUsername($username);
+            if ($email) {
+                \Models\Email::sendWelcomeEmail($email, $username);
+            }
+            \sendJsonResponse(['username' => $username]);
+        } else {
+            \sendJsonResponse(['error' => $msg], 400);
+        }
+    }
+
+    private static function email($accountModel)
+    {
+        $username = filter_input(INPUT_GET, 'username', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$username) {
+            \sendJsonResponse(['error' => 'Username parameter is required.'], 400);
+        }
+        $email = $accountModel->getEmailByUsername($username);
+        \sendJsonResponse(['email' => $email]);
+    }
+
+    private static function verifyResetToken($accountModel)
+    {
+        $token = filter_input(INPUT_GET, 'token', FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        if (!$token) {
+            \sendJsonResponse(['error' => 'Token parameter is required.'], 400);
+        }
+        [$ok, $msg] = $accountModel->verifyResetToken($token);
+        if ($ok) {
+            \sendJsonResponse(['username' => $msg]);
+        } else {
+            \sendJsonResponse(['error' => $msg], 400);
+        }
+    }
+
+    private static function resetPassword($accountModel)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Allow: POST');
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+        }
+        $input = json_decode(file_get_contents('php://input'), true);
+        $token = trim(filter_var($input['token'] ?? '', FILTER_SANITIZE_FULL_SPECIAL_CHARS));
+        $password = $input['password'] ?? '';
+        if (!$token || !$password) {
+            \sendJsonResponse(['error' => 'Token and password are required.'], 400);
+        }
+        [$ok, $msg] = $accountModel->resetPassword($token, $password);
+        if ($ok) {
+            \sendJsonResponse(['username' => $msg]);
+        } else {
+            \sendJsonResponse(['error' => $msg], 400);
+        }
+    }
+
+    private static function shelterStatus($accountModel)
+    {
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        if (!$id) {
+            \sendJsonResponse(['error' => 'Invalid or missing id.'], 400);
+        }
+        $status = $accountModel->getShelterStatus($id);
+        \sendJsonResponse($status);
+    }
+
+    private static function nearestOpenShelter($accountModel)
+    {
+        $lat = filter_input(INPUT_GET, 'lat', FILTER_VALIDATE_FLOAT);
+        $lng = filter_input(INPUT_GET, 'lng', FILTER_VALIDATE_FLOAT);
+        $excludeId = filter_input(INPUT_GET, 'exclude_id', FILTER_VALIDATE_INT);
+
+        if ($lat === false || $lng === false || $lat === null || $lng === null) {
+            \sendJsonResponse(['error' => 'Invalid or missing lat/lng parameters.'], 400);
+        }
+
+        [$ok, $res] = $accountModel->findNearestOpenShelter($lat, $lng, $excludeId);
+        if (!$ok) {
+            \sendJsonResponse(['error' => $res], 500);
+        }
+        \sendJsonResponse($res);
     }
 }

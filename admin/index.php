@@ -1,10 +1,21 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
+
+require_once __DIR__ . '/models/HttpClient.php';
+require_once __DIR__ . '/models/Event.php';
+require_once __DIR__ . '/models/Shelter.php';
+require_once __DIR__ . '/models/Account.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$eventModel = new \Models\Event($apiBaseUrl);
+$shelterModel = new \Models\Shelter($apiBaseUrl);
+$userModel = new \Models\Account($apiBaseUrl);
 
 function e($value): string
 {
@@ -73,63 +84,7 @@ function formatTimestamp($value): string
     return e(date('Y-m-d H:i:s', $time));
 }
 
-function fetchPaginatedAdminRows($mysql, $countSql, $dataSql, $page, $pageSize, $types = '', $params = [])
-{
-    $bindStatementParams = function ($stmt, $types, &$params) {
-        if ($types === '') {
-            return true;
-        }
-
-        $args = [$types];
-        foreach ($params as $index => &$value) {
-            $args[$index + 1] = &$value;
-        }
-        unset($value);
-
-        return $stmt->bind_param(...$args);
-    };
-
-    $total = 0;
-    $countStmt = $mysql->prepare($countSql);
-    if ($countStmt) {
-        if ($types !== '' && !empty($params)) {
-            $countStmt->bind_param($types, ...$params);
-        }
-        if ($countStmt->execute() && ($result = $countStmt->get_result())) {
-            $total = (int) ($result->fetch_row()[0] ?? 0);
-        }
-        $countStmt->close();
-    }
-
-    $totalPages = max(1, (int) ceil($total / $pageSize));
-    $page = min($page, $totalPages);
-    $offset = ($page - 1) * $pageSize;
-
-    $stmt = $mysql->prepare($dataSql);
-    if (!$stmt) {
-        return [[], $total, $totalPages, $page, false];
-    }
-
-    $bindTypes = $types . 'ii';
-    $statementParams = array_merge($params, [$pageSize, $offset]);
-    if (!$bindStatementParams($stmt, $bindTypes, $statementParams)) {
-        $stmt->close();
-        return [[], $total, $totalPages, $page, false];
-    }
-
-    if (!$stmt->execute() || !($result = $stmt->get_result())) {
-        $stmt->close();
-        return [[], $total, $totalPages, $page, false];
-    }
-
-    $rows = [];
-    while ($row = $result->fetch_assoc()) {
-        $rows[] = $row;
-    }
-    $stmt->close();
-
-    return [$rows, $total, $totalPages, $page, true];
-}
+// Decoupled from direct database access
 
 if (!($_SESSION['isLoggedIn'] ?? false)) {
     header('Location: /login');
@@ -138,7 +93,6 @@ if (!($_SESSION['isLoggedIn'] ?? false)) {
 
 if (($_SESSION['role'] ?? '') !== 'admin') {
     try {
-        $userModel = new \Models\Account($mysql);
         $role = $userModel->getRole($_SESSION['username'] ?? '');
         $_SESSION['role'] = $role ?? 'user';
     } catch (\Throwable $e) {
@@ -249,21 +203,12 @@ $shelterSortMap = [
     'created'
 );
 
-[$eventWhereSql, $eventParams, $eventTypes] = buildSearchFilter(['title', 'description'], $eventsSearch);
-[$shelterWhereSql, $shelterParams, $shelterTypes] = buildSearchFilter(['name', 'address'], $sheltersSearch);
-
-[$events, $eventCount, $eventTotalPages, $eventsPage, $eventQueryOk] = fetchPaginatedAdminRows(
-    $mysql,
-    "SELECT COUNT(*) FROM emergency_events{$eventWhereSql}",
-    "SELECT id, event_type, title, description, severity, latitude, longitude, status, created_at, updated_at
-     FROM emergency_events{$eventWhereSql}
-     ORDER BY {$eventsSortColumn} {$eventsSortDir}, id DESC
-     LIMIT ? OFFSET ?",
-    $eventsPage,
-    $eventsPageSize,
-    $eventTypes,
-    $eventParams
-);
+[$okE, $eventData] = $eventModel->getPaginated($eventsPage, $eventsPageSize, $eventsSearch, $eventsSort, $eventsSortDir);
+$eventQueryOk = $okE;
+$events = $okE ? ($eventData['rows'] ?? []) : [];
+$eventCount = $okE ? ($eventData['total'] ?? 0) : 0;
+$eventTotalPages = $okE ? ($eventData['totalPages'] ?? 1) : 1;
+$eventsPage = $okE ? ($eventData['page'] ?? 1) : 1;
 
 foreach ($events as &$row) {
     $row['event_type'] = e($row['event_type'] ?? '');
@@ -281,18 +226,12 @@ foreach ($events as &$row) {
 unset($row);
 $hasEvents = !empty($events);
 
-[$shelters, $shelterCount, $shelterTotalPages, $sheltersPage, $shelterQueryOk] = fetchPaginatedAdminRows(
-    $mysql,
-    "SELECT COUNT(*) FROM shelters{$shelterWhereSql}",
-    "SELECT id, name, address, latitude, longitude, capacity, shelter_type, status, contact_phone, notes, created_at, updated_at
-     FROM shelters{$shelterWhereSql}
-     ORDER BY {$sheltersSortColumn} {$sheltersSortDir}, id DESC
-     LIMIT ? OFFSET ?",
-    $sheltersPage,
-    $sheltersPageSize,
-    $shelterTypes,
-    $shelterParams
-);
+[$okS, $shelterData] = $shelterModel->getPaginated($sheltersPage, $sheltersPageSize, $sheltersSearch, $sheltersSort, $sheltersSortDir);
+$shelterQueryOk = $okS;
+$shelters = $okS ? ($shelterData['rows'] ?? []) : [];
+$shelterCount = $okS ? ($shelterData['total'] ?? 0) : 0;
+$shelterTotalPages = $okS ? ($shelterData['totalPages'] ?? 1) : 1;
+$sheltersPage = $okS ? ($shelterData['page'] ?? 1) : 1;
 
 foreach ($shelters as &$row) {
     $row['name'] = e($row['name'] ?? '');

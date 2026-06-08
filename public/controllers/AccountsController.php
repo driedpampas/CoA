@@ -1,12 +1,17 @@
 <?php
 require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-$userModel = new \Models\Account($mysql);
+require_once __DIR__ . '/../models/HttpClient.php';
+require_once __DIR__ . '/../models/Account.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$userModel = new \Models\Account($apiBaseUrl);
 
 $isLoggedIn = false;
 $username = "";

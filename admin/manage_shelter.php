@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -11,6 +10,14 @@ if (!($_SESSION['isLoggedIn'] ?? false) || ($_SESSION['role'] ?? '') !== 'admin'
     echo json_encode(['error' => 'Forbidden']);
     exit;
 }
+
+require_once __DIR__ . '/models/HttpClient.php';
+require_once __DIR__ . '/models/Shelter.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$shelterModel = new \Models\Shelter($apiBaseUrl);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -30,15 +37,13 @@ if (!$id) {
 }
 
 if ($method === 'DELETE') {
-    $stmt = $mysql->prepare("DELETE FROM shelters WHERE id = ?");
-    $stmt->bind_param('i', $id);
-    if ($stmt->execute()) {
+    [$ok, $res] = $shelterModel->delete($id);
+    if ($ok) {
         echo json_encode(['success' => true]);
     } else {
         header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(['error' => 'Database deletion failure']);
+        echo json_encode(['error' => 'Database deletion failure: ' . $res]);
     }
-    $stmt->close();
     exit;
 }
 
@@ -62,17 +67,26 @@ if ($method === 'PATCH' || $method === 'PUT') {
     }
     $capacity = ($capacity === false) ? 0 : max(0, $capacity);
 
-    $point = sprintf('POINT(%F %F)', $longitude, $latitude);
-    $stmt = $mysql->prepare("UPDATE shelters SET name=?, address=?, latitude=?, longitude=?, geom_point=ST_GeomFromText(?, 4326), capacity=?, shelter_type=?, status=?, contact_phone=?, notes=? WHERE id=?");
-    $stmt->bind_param('ssddsissssi', $name, $address, $latitude, $longitude, $point, $capacity, $shelter_type, $status, $contact_phone, $notes, $id);
+    $data = [
+        'name' => $name,
+        'address' => $address,
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+        'capacity' => $capacity,
+        'shelter_type' => $shelter_type,
+        'status' => $status,
+        'contact_phone' => $contact_phone,
+        'notes' => $notes,
+    ];
 
-    if ($stmt->execute()) {
+    [$ok, $res] = $shelterModel->update($id, $data);
+
+    if ($ok) {
         echo json_encode(['success' => true]);
     } else {
         header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(['error' => 'Database update failure']);
+        echo json_encode(['error' => 'Database update failure: ' . $res]);
     }
-    $stmt->close();
     exit;
 }
 

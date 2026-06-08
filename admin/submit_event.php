@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -46,6 +45,14 @@ if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrf)) {
     respondAdminSubmit(['success' => false, 'error' => 'Invalid CSRF token'], 400);
 }
 
+require_once __DIR__ . '/models/HttpClient.php';
+require_once __DIR__ . '/models/Event.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$eventModel = new \Models\Event($apiBaseUrl);
+
 $allowedTypes = ['earthquake', 'flood', 'fire', 'storm', 'other'];
 $allowedSev = ['low', 'moderate', 'high', 'extreme'];
 
@@ -71,27 +78,19 @@ if (($latitudeProvided && $latitude === false) || ($longitudeProvided && $longit
     respondAdminSubmit(['success' => false, 'error' => 'Invalid latitude or longitude'], 400);
 }
 
-if ($latitude === null || $longitude === null) {
-    $stmt = $mysql->prepare("INSERT INTO emergency_events (event_type, title, description, severity, latitude, longitude) VALUES (?, ?, ?, ?, NULL, NULL)");
-    if (!$stmt) {
-        respondAdminSubmit(['success' => false, 'error' => 'Database prepare failed'], 500);
-    }
-    $stmt->bind_param('ssss', $event_type, $title, $description, $severity);
-} else {
-    $stmt = $mysql->prepare("INSERT INTO emergency_events (event_type, title, description, severity, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)");
-    if (!$stmt) {
-        respondAdminSubmit(['success' => false, 'error' => 'Database prepare failed'], 500);
-    }
-    $stmt->bind_param('ssssdd', $event_type, $title, $description, $severity, $latitude, $longitude);
-}
+$data = [
+    'event_type' => $event_type,
+    'title' => $title,
+    'description' => $description,
+    'severity' => $severity,
+    'latitude' => $latitude,
+    'longitude' => $longitude,
+];
 
-$ok = $stmt->execute();
-$eventId = $stmt->insert_id;
-$error = $stmt->error ?? '';
-$stmt->close();
+[$ok, $res] = $eventModel->create($data);
 
 if (!$ok) {
-    respondAdminSubmit(['success' => false, 'error' => 'Database insert failed: ' . $error], 500);
+    respondAdminSubmit(['success' => false, 'error' => $res], 500);
 }
 
-respondAdminSubmit(['success' => true, 'id' => $eventId], 200, true);
+respondAdminSubmit(['success' => true, 'id' => $res['id'] ?? null], 200, true);

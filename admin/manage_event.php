@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config/db.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
@@ -11,6 +10,14 @@ if (!($_SESSION['isLoggedIn'] ?? false) || ($_SESSION['role'] ?? '') !== 'admin'
     echo json_encode(['error' => 'Forbidden']);
     exit;
 }
+
+require_once __DIR__ . '/models/HttpClient.php';
+require_once __DIR__ . '/models/Event.php';
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
+
+$eventModel = new \Models\Event($apiBaseUrl);
 
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -30,15 +37,13 @@ if (!$id) {
 }
 
 if ($method === 'DELETE') {
-    $stmt = $mysql->prepare("DELETE FROM emergency_events WHERE id = ?");
-    $stmt->bind_param('i', $id);
-    if ($stmt->execute()) {
+    [$ok, $res] = $eventModel->delete($id);
+    if ($ok) {
         echo json_encode(['success' => true]);
     } else {
         header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(['error' => 'Database deletion failure']);
+        echo json_encode(['error' => 'Database deletion failure: ' . $res]);
     }
-    $stmt->close();
     exit;
 }
 
@@ -61,23 +66,24 @@ if ($method === 'PATCH' || $method === 'PUT') {
         exit;
     }
 
-    $resolvedAtSql = $status === 'resolved' ? 'NOW()' : 'NULL';
+    $data = [
+        'event_type' => $event_type,
+        'title' => $title,
+        'description' => $description,
+        'severity' => $severity,
+        'status' => $status,
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+    ];
 
-    if ($latitude === null || $longitude === null) {
-        $stmt = $mysql->prepare("UPDATE emergency_events SET event_type=?, title=?, description=?, severity=?, status=?, resolved_at={$resolvedAtSql}, latitude=NULL, longitude=NULL WHERE id=?");
-        $stmt->bind_param('sssssi', $event_type, $title, $description, $severity, $status, $id);
-    } else {
-        $stmt = $mysql->prepare("UPDATE emergency_events SET event_type=?, title=?, description=?, severity=?, status=?, resolved_at={$resolvedAtSql}, latitude=?, longitude=? WHERE id=?");
-        $stmt->bind_param('sssssddi', $event_type, $title, $description, $severity, $status, $latitude, $longitude, $id);
-    }
+    [$ok, $res] = $eventModel->update($id, $data);
 
-    if ($stmt->execute()) {
+    if ($ok) {
         echo json_encode(['success' => true]);
     } else {
         header('HTTP/1.1 500 Internal Server Error');
-        echo json_encode(['error' => 'Database update failure']);
+        echo json_encode(['error' => 'Database update failure: ' . $res]);
     }
-    $stmt->close();
     exit;
 }
 
