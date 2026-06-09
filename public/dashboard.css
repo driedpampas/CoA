@@ -524,6 +524,9 @@ body {
 	z-index: 1000;
 	font-size: 0.85rem;
 	min-width: 170px;
+	max-height: calc(100% - 20px);
+	display: flex;
+	flex-direction: column;
 }
 
 .layer-toggle {
@@ -539,6 +542,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	flex-shrink: 0;
 }
 
 .layer-toggle:hover {
@@ -551,6 +555,7 @@ body {
 
 .layer-content {
 	padding: 0.35rem 0.75rem 0.75rem;
+	overflow-y: auto;
 }
 
 .layer-content label {
@@ -894,6 +899,7 @@ body {
 		top: 6px;
 		border-radius: 4px;
 		max-width: calc(100% - 12px);
+		max-height: calc(100% - 12px);
 	}
 
 	.layer-controls label {
