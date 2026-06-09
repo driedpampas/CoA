@@ -79,3 +79,7 @@ The project is intended to be accessible locally at `http://coa.local` through a
 ### Notes
 - The `admin/` and `api/` folders also use `.htaccess` and should remain protected from direct access.
 - `vendor/autoload.php` is required by the application, so Composer must be installed before running the project.
+
+### Presentation Video:
+
+**https://drive.google.com/drive/folders/1UfU9SJdc7Gb446mMZJFLfOG4cAn-D0iL?usp=sharing**
