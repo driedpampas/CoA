@@ -289,6 +289,30 @@ class Account
         return $row['email'];
     }
 
+    public function getUnverifiedUserByEmail($email)
+    {
+        if (!($stmt = $this->mysql->prepare("SELECT user FROM auth WHERE email = ? AND email_verified = 0"))) {
+            return [false, null];
+        }
+
+        if (!$stmt->bind_param('s', $email)) {
+            return [false, null];
+        }
+
+        if (!$stmt->execute()) {
+            return [false, null];
+        }
+
+        $result = $stmt->get_result();
+
+        if ($result->num_rows === 0) {
+            return [false, null];
+        }
+
+        $row = $result->fetch_assoc();
+        return [true, ['username' => $row['user']]];
+    }
+
     public function updateLocation($userId, $latitude, $longitude)
     {
         if (!($stmt = $this->mysql->prepare(

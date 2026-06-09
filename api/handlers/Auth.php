@@ -19,6 +19,9 @@ class Auth
             case 'register':
                 self::register($accountModel);
                 break;
+            case 'resend-verification':
+                self::resendVerification($accountModel);
+                break;
             case 'check-username':
                 self::checkUsername($accountModel);
                 break;
@@ -147,7 +150,10 @@ class Auth
         [$ok, $tokenOrError] = $accountModel->setVerificationToken($username);
 
         if ($ok) {
-            \Models\Email::sendVerificationEmail($email, $username, $tokenOrError);
+            $sent = \Models\Email::sendVerificationEmail($email, $username, $tokenOrError);
+            if (!$sent) {
+                error_log("Email service unreachable: verification email not sent to {$email} for user {$username}");
+            }
         }
 
         \sendJsonResponse(['message' => 'Registration successful. Please check your email to verify your account.'], 201);
@@ -368,6 +374,39 @@ class Auth
             \sendJsonResponse(['error' => $tokenOrError], 500);
         }
         \sendJsonResponse(['token' => $tokenOrError]);
+    }
+
+    private static function resendVerification($accountModel)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Allow: POST');
+            \sendJsonResponse(['error' => 'Method not allowed.'], 405);
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = trim(filter_var($input['email'] ?? '', FILTER_SANITIZE_EMAIL));
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            \sendJsonResponse(['error' => 'A valid email address is required.'], 400);
+        }
+
+        [$found, $userData] = $accountModel->getUnverifiedUserByEmail($email);
+
+        // Always respond generically to avoid email enumeration
+        if (!$found) {
+            \sendJsonResponse(['message' => 'If an unverified account with that email exists, a new verification link has been sent.']);
+        }
+
+        [$ok, $tokenOrError] = $accountModel->setVerificationToken($userData['username']);
+
+        if ($ok) {
+            $sent = \Models\Email::sendVerificationEmail($email, $userData['username'], $tokenOrError);
+            if (!$sent) {
+                error_log("Email service unreachable: resend verification failed to {$email}");
+            }
+        }
+
+        \sendJsonResponse(['message' => 'If an unverified account with that email exists, a new verification link has been sent.']);
     }
 
     private static function verify($accountModel)

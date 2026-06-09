@@ -218,6 +218,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             break;
         }
 
+        case "resend-verification": {
+            $email = trim(filter_var($_POST["email"] ?? "", FILTER_SANITIZE_EMAIL));
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $_SESSION["errorMessage"] = "Please provide a valid email address.";
+                header("Location: check-email?error=1");
+                exit;
+            }
+            $userModel->resendVerification($email);
+            $_SESSION["successMessage"] = "If an unverified account with that email exists, a new verification link has been sent.";
+            header("Location: check-email");
+            exit;
+        }
+
         case "forgot-password":
             handleForgotPassword();
             break;

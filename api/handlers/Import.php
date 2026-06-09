@@ -17,8 +17,8 @@ class Import
             \sendJsonResponse(['error' => 'Forbidden: admin access required.'], 403);
         }
 
-        // Check CSRF
-        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        // Check CSRF — accept either the header (JS fetch) or the POST field (form fallback)
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
         if (empty($csrf) || !hash_equals($_SESSION['csrf_token'] ?? '', $csrf)) {
             \sendJsonResponse(['error' => 'Invalid CSRF token.'], 400);
         }

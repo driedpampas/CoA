@@ -81,6 +81,14 @@ class Account
         return [false, $res];
     }
 
+    public function resendVerification($email)
+    {
+        [$ok, $res] = $this->client->request('POST', 'auth/resend-verification', [
+            'email' => $email
+        ]);
+        return [$ok, $res['message'] ?? ($res['error'] ?? 'Request failed.')];
+    }
+
     public function verifyEmail($token)
     {
         // DB model returns [success_bool, username_or_error]

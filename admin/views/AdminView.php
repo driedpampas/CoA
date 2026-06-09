@@ -691,6 +691,7 @@
 
             <form class="modal-form active" id="importForm" method="post" enctype="multipart/form-data"
                 action="/api/import?resource=<?= e($activeTab) ?>">
+                <input type="hidden" name="csrf_token" value="<?= $csrf ?>">
                 <div class="form-row">
                     <label for="import_file">Choose File (.csv, .json)</label>
                     <input id="import_file" name="import_file" type="file" accept=".csv,.json" required>
