@@ -85,7 +85,8 @@ h1 {
 }
 
 /* The form itself */
-form {
+form,
+.form-card {
 	background: var(--form-bg);
 	padding: 30px;
 	border-radius: 8px;

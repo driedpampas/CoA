@@ -23,7 +23,7 @@
         <div class="header-top">
             <div class="header-brand">
                 <h1>My Profile</h1>
-                <button id="themeToggle" class="theme-toggle" aria-label="Toggle Theme">
+                <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle Theme">
                     <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
                         <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -40,7 +40,7 @@
                     </svg>
                 </button>
             </div>
-            <button id="menuToggle" class="menu-toggle" aria-label="Toggle navigation">
+            <button id="menuToggle" type="button" class="menu-toggle" aria-label="Toggle navigation">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -71,21 +71,21 @@
                 <div class="notice notice-critical">
                     <strong>Your preferred shelter (<?php echo htmlspecialchars($shelterStatus['name']); ?>) is currently <?php echo htmlspecialchars($shelterStatus['status']); ?>.</strong>
                     <?php if ($preferredShelterDistance !== null): ?>
-                        <p style="margin-top:0.5rem;">It is approx. <?php echo htmlspecialchars(number_format($preferredShelterDistance, 1)); ?> km away from your last known location.</p>
+                        <p class="notice-p">It is approx. <?php echo htmlspecialchars(number_format($preferredShelterDistance, 1)); ?> km away from your last known location.</p>
                     <?php endif; ?>
                     <?php if ($fallbackShelter): ?>
-                        <p style="margin-top:0.5rem;">
+                        <p class="notice-p">
                             nearest open alternative: <strong><?php echo htmlspecialchars($fallbackShelter['name']); ?></strong>
                             (<?php echo htmlspecialchars($fallbackShelter['address']); ?>)
                             — approx. <?php echo htmlspecialchars(number_format($fallbackDistance, 1)); ?> km away,
                             capacity <?php echo htmlspecialchars($fallbackShelter['current_occupancy'] . ' / ' . $fallbackShelter['capacity']); ?>.
                         </p>
                     <?php else: ?>
-                        <p style="margin-top:0.5rem;">No open shelters found nearby. Please try again later.</p>
+                        <p class="notice-p">No open shelters found nearby. Please try again later.</p>
                     <?php endif; ?>
                 </div>
             <?php elseif ($shelterStatus && $shelterStatus['status'] === 'open'): ?>
-                <div class="notice" style="background:#e8f5e9;border-left-color:#2e7d32;color:#1b5e20;">
+                <div class="notice notice-success">
                     Preferred shelter: <strong><?php echo htmlspecialchars($shelterStatus['name']); ?></strong> — open (capacity <?php echo htmlspecialchars($shelterStatus['current_occupancy'] . ' / ' . $shelterStatus['capacity']); ?>).
                     <?php if ($preferredShelterDistance !== null): ?>
                         approx. <?php echo htmlspecialchars(number_format($preferredShelterDistance, 1)); ?> km away from your last known location.
@@ -130,11 +130,11 @@
 
                 <div class="btn-row">
                     <button type="submit" class="btn">Save changes</button>
-                    <a href="dashboard" class="btn" style="background:#9e9e9e;text-decoration:none;display:inline-flex;align-items:center;">Cancel</a>
+                    <a href="dashboard" class="btn btn-cancel">Cancel</a>
                 </div>
             </form>
 
-            <p id="profileStatus" style="margin-top:1rem;font-size:0.9rem;"></p>
+            <p id="profileStatus" class="profile-status"></p>
         </div>
     </main>
 
@@ -148,7 +148,7 @@
             statusEl.style.color = '#1565c0';
 
             fetch('api/auth/profile', {
-                method: 'POST',
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     bio: document.getElementById('bio').value,

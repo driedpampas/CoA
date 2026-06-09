@@ -9,7 +9,7 @@
 
 <body>
     <p style="color: red;">General error, please retry your request later.</p>
-    <button onclick="window.location.href='login'">Go back</button>
+    <button type="button" onclick="window.location.href='login'">Go back</button>
 </body>
 
 </html>

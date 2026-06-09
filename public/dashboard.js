@@ -45,6 +45,8 @@ setTimeout(function () {
 	var userLocationLayer = L.layerGroup().addTo(map);
 	var routesLayer = L.layerGroup().addTo(map);
 	var osrmRouteLayer = null;
+	var favoriteRouteLayer = null;
+	var profilePreferredShelterId = typeof window.profilePreferredShelterId !== "undefined" ? window.profilePreferredShelterId : null;
 	var mapEventsData = Array.isArray(eventsData) ? eventsData.slice() : [];
 	var mapEventWindowStorageKey = "coa-map-event-window-days";
 	var mapEventWindowInput = document.querySelector("#eventWindowDays");
@@ -58,7 +60,7 @@ setTimeout(function () {
 		currentUserId !== null ? `coa-live-notifications-${currentUserId}` : null;
 	var liveNotificationsData = getNotificationStorage();
 
-	var profileRadius = typeof profileRadius !== "undefined" ? profileRadius : null;
+	var profileRadius = typeof window.profileRadius !== "undefined" ? window.profileRadius : null;
 
 	function getMarkerColor(eventType) {
 		var colors = {
@@ -264,6 +266,9 @@ setTimeout(function () {
 		if (osrmRouteLayer) {
 			routesLayer.addLayer(osrmRouteLayer);
 		}
+		if (favoriteRouteLayer) {
+			routesLayer.addLayer(favoriteRouteLayer);
+		}
 	}
 
 	function fetchNearestRoutes(lat, lng) {
@@ -293,55 +298,182 @@ setTimeout(function () {
 
 					if (routes.length === 0) {
 						routeListEl.innerHTML =
-							'<p class="empty-state">No evacuation routes found in the area.</p>';
-						return;
+							'<p id="routesEmptyState" class="empty-state">No evacuation routes found in the area.</p>';
+					} else {
+						routes.forEach((route) => {
+							var dist =
+								route.distance_from_point < 1000
+									? `${route.distance_from_point} m`
+									: `${(route.distance_from_point / 1000).toFixed(1)} km`;
+							var div = document.createElement("div");
+							div.className = `route-item status-${route.status}`;
+							div.setAttribute("data-route-id", route.id);
+							if (route.route_geometry && route.route_geometry.length > 0) {
+								div.setAttribute("data-lat", route.route_geometry[0][0]);
+								div.setAttribute("data-lng", route.route_geometry[0][1]);
+							}
+							div.innerHTML = `
+								<div class="route-header">
+									<strong>${route.name}</strong>
+									<span class="badge badge-status-${route.status}">${route.status}</span>
+								</div>
+								<div class="route-meta">
+									<div class="route-meta-row">
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+											<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+											<circle cx="12" cy="10" r="3"/>
+										</svg>
+										<span>To: <span class="route-destination">${route.shelter_name}</span></span>
+									</div>
+									<div class="route-meta-row">
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+											<circle cx="12" cy="12" r="10"/>
+											<polyline points="12 6 12 12 16 14"/>
+										</svg>
+										<span>~${route.estimated_minutes} min</span>
+										<span class="bullet-separator">•</span>
+										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+											<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+											<line x1="9" y1="3" x2="9" y2="18"/>
+											<line x1="15" y1="6" x2="15" y2="21"/>
+										</svg>
+										<span>${dist}</span>
+									</div>
+								</div>
+							`;
+							routeListEl.appendChild(div);
+						});
 					}
-
-					routes.forEach((route) => {
-						var dist =
-							route.distance_from_point < 1000
-								? `${route.distance_from_point} m`
-								: `${(route.distance_from_point / 1000).toFixed(1)} km`;
-						var div = document.createElement("div");
-						div.className = `route-item status-${route.status}`;
-						div.setAttribute("data-route-id", route.id);
-						if (route.route_geometry && route.route_geometry.length > 0) {
-							div.setAttribute("data-lat", route.route_geometry[0][0]);
-							div.setAttribute("data-lng", route.route_geometry[0][1]);
-						}
-						div.innerHTML = `
-							<div class="route-header">
-								<strong>${route.name}</strong>
-								<span class="badge badge-status-${route.status}">${route.status}</span>
-							</div>
-							<div class="route-meta">
-								<div class="route-meta-row">
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-										<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-										<circle cx="12" cy="10" r="3"/>
-									</svg>
-									<span>To: <span class="route-destination">${route.shelter_name}</span></span>
-								</div>
-								<div class="route-meta-row">
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-										<circle cx="12" cy="12" r="10"/>
-										<polyline points="12 6 12 12 16 14"/>
-									</svg>
-									<span>~${route.estimated_minutes} min</span>
-									<span class="bullet-separator">•</span>
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
-										<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
-										<line x1="9" y1="3" x2="9" y2="18"/>
-										<line x1="15" y1="6" x2="15" y2="21"/>
-									</svg>
-									<span>${dist}</span>
-								</div>
-							</div>
-						`;
-						routeListEl.appendChild(div);
-					});
 				}
+
+				fetchFavoriteRoute(lat, lng);
 			});
+	}
+
+	function fetchFavoriteRoute(lat, lng) {
+		if (favoriteRouteLayer) {
+			routesLayer.removeLayer(favoriteRouteLayer);
+			favoriteRouteLayer = null;
+		}
+
+		var routeListEl = document.querySelector("#routeList");
+		if (routeListEl) {
+			var existingItem = routeListEl.querySelector(".route-item.favorite-route");
+			if (existingItem) {
+				existingItem.remove();
+			}
+		}
+
+		if (!emergencyMode) return;
+
+		if (!profilePreferredShelterId) return;
+
+		var favShelter = sheltersData.find(function (s) {
+			return parseInt(s.id) === parseInt(profilePreferredShelterId);
+		});
+
+		if (!favShelter || !favShelter.latitude || !favShelter.longitude) return;
+
+		var toLat = parseFloat(favShelter.latitude);
+		var toLng = parseFloat(favShelter.longitude);
+
+		var url =
+			"https://router.project-osrm.org/route/v1/driving/" +
+			lng +
+			"," +
+			lat +
+			";" +
+			toLng +
+			"," +
+			toLat +
+			"?overview=full&geometries=geojson&steps=true";
+
+		fetch(url)
+			.then((r) => r.json())
+			.then((data) => {
+				if (data.routes && data.routes.length > 0) {
+					displayFavoriteRoute(data.routes[0], favShelter);
+				}
+			})
+			.catch((err) => {
+				console.error("[OSRM] Favorite route fetch failed:", err);
+			});
+	}
+
+	function displayFavoriteRoute(route, shelter) {
+		if (favoriteRouteLayer) {
+			routesLayer.removeLayer(favoriteRouteLayer);
+		}
+
+		var coords = route.geometry.coordinates.map((c) => {
+			return [c[1], c[0]];
+		});
+
+		var durationMin = Math.round(route.duration / 60);
+		var dist = route.distance;
+		var distStr =
+			dist < 1000
+				? `${dist.toFixed(0)} m`
+				: `${(dist / 1000).toFixed(1)} km`;
+
+		favoriteRouteLayer = L.polyline(coords, {
+			color: "#8b5cf6",
+			weight: 5,
+			opacity: 0.9,
+		}).addTo(routesLayer);
+
+		favoriteRouteLayer.bindPopup(
+			`<strong>Favorite Shelter Route (Autogenerated)</strong><br>Route to: ${shelter.name}<br>Duration: ~${durationMin} min<br>Distance: ${distStr}`,
+		);
+
+		var routeListEl = document.querySelector("#routeList");
+		if (routeListEl) {
+			var emptyState = routeListEl.querySelector(".empty-state");
+			if (emptyState) {
+				emptyState.remove();
+			}
+
+			var existingItem = routeListEl.querySelector(".route-item.favorite-route");
+			if (existingItem) {
+				existingItem.remove();
+			}
+
+			var div = document.createElement("div");
+			div.className = "route-item status-active favorite-route";
+			div.setAttribute("data-lat", coords[0][0]);
+			div.setAttribute("data-lng", coords[0][1]);
+			div.innerHTML = `
+				<div class="route-header">
+					<strong>Route to Favorite Shelter</strong>
+					<span class="badge badge-status-favorite">Favorite</span>
+				</div>
+				<div class="route-meta">
+					<div class="route-meta-row">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+							<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+							<circle cx="12" cy="10" r="3"/>
+						</svg>
+						<span>To: <span class="route-destination">${shelter.name}</span></span>
+					</div>
+					<div class="route-meta-row">
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+							<circle cx="12" cy="12" r="10"/>
+							<polyline points="12 6 12 12 16 14"/>
+						</svg>
+						<span>~${durationMin} min</span>
+						<span class="bullet-separator">•</span>
+						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+							<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+							<line x1="9" y1="3" x2="9" y2="18"/>
+							<line x1="15" y1="6" x2="15" y2="21"/>
+						</svg>
+						<span>${distStr}</span>
+					</div>
+				</div>
+			`;
+
+			routeListEl.insertBefore(div, routeListEl.firstChild);
+		}
 	}
 
 	function haversineDistance(lat1, lng1, lat2, lng2) {
@@ -497,6 +629,10 @@ setTimeout(function () {
 				parseFloat(nearestShelter.latitude),
 				parseFloat(nearestShelter.longitude),
 			);
+		}
+
+		if (profilePreferredShelterId) {
+			fetchFavoriteRoute(userLat, userLng);
 		}
 	}
 
@@ -669,6 +805,19 @@ setTimeout(function () {
 		if (osrmRouteLayer) {
 			map.removeLayer(osrmRouteLayer);
 			osrmRouteLayer = null;
+		}
+
+		if (favoriteRouteLayer) {
+			routesLayer.removeLayer(favoriteRouteLayer);
+			favoriteRouteLayer = null;
+		}
+
+		var routeListEl = document.querySelector("#routeList");
+		if (routeListEl) {
+			var existingItem = routeListEl.querySelector(".route-item.favorite-route");
+			if (existingItem) {
+				existingItem.remove();
+			}
 		}
 	}
 
