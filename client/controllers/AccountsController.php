@@ -69,12 +69,6 @@ function register($username, $password, $email)
         exit;
     }
 
-    [$ok, $tokenOrError] = $userModel->setVerificationToken($username);
-
-    if ($ok) {
-        \Models\Email::sendVerificationEmail($email, $username, $tokenOrError);
-    }
-
     $_SESSION["successMessage"] = "Registration successful. Please check your email to verify your account.";
     header("Location: check-email");
     exit;
@@ -92,11 +86,7 @@ function handleForgotPassword()
         exit;
     }
 
-    [$ok, $result] = $userModel->setResetToken($email);
-
-    if ($ok) {
-        \Models\Email::sendPasswordResetEmail($result['email'], $result['username'], $result['token']);
-    }
+    $userModel->setResetToken($email);
 
     $_SESSION["successMessage"] = "If an account with that email exists, a password reset link has been sent.";
     header("Location: forgot-password");
@@ -157,10 +147,6 @@ function showVerify()
 
     if ($ok) {
         $verifiedUsername = $msg;
-        $email = $userModel->getEmailByUsername($msg);
-        if ($email) {
-            \Models\Email::sendWelcomeEmail($email, $msg);
-        }
     } else {
         $verifyError = $msg;
     }
