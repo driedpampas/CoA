@@ -136,7 +136,11 @@ if (importForm) {
             const response = await fetch(importForm.action, {
                 method: 'POST',
                 body:   new FormData(importForm),
-                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': GLOBAL_CSRF_TOKEN
+                }
             });
 
             const data = await response.json().catch(() => null);
