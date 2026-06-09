@@ -186,12 +186,12 @@ class Routes
             return [false, 'Shelter not found.'];
         }
 
-        $toLat = (float)$shelter['latitude'];
-        $toLng = (float)$shelter['longitude'];
+        $toLat = (float) $shelter['latitude'];
+        $toLng = (float) $shelter['longitude'];
 
         $url = "https://router.project-osrm.org/route/v1/driving/" .
-               $fromLng . "," . $fromLat . ";" .
-               $toLng . "," . $toLat . "?overview=full&geometries=geojson";
+            $fromLng . "," . $fromLat . ";" .
+            $toLng . "," . $toLat . "?overview=full&geometries=geojson";
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
@@ -201,33 +201,38 @@ class Routes
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $res = curl_exec($ch);
-        curl_close($ch);
 
         if ($res === false) {
             // Fallback to straight line
             $wkt = "LINESTRING($fromLng $fromLat, $toLng $toLat)";
-            return [true, [
-                'wkt' => $wkt,
-                'distance' => 1000,
-                'duration' => 5
-            ]];
+            return [
+                true,
+                [
+                    'wkt' => $wkt,
+                    'distance' => 1000,
+                    'duration' => 5
+                ]
+            ];
         }
 
         $data = json_decode($res, true);
         if (empty($data['routes']) || empty($data['routes'][0]['geometry']['coordinates'])) {
             // Fallback to straight line
             $wkt = "LINESTRING($fromLng $fromLat, $toLng $toLat)";
-            return [true, [
-                'wkt' => $wkt,
-                'distance' => 1000,
-                'duration' => 5
-            ]];
+            return [
+                true,
+                [
+                    'wkt' => $wkt,
+                    'distance' => 1000,
+                    'duration' => 5
+                ]
+            ];
         }
 
         $routeInfo = $data['routes'][0];
         $coords = $routeInfo['geometry']['coordinates'];
-        $distance = (int)$routeInfo['distance'];
-        $duration = (int)ceil($routeInfo['duration'] / 60);
+        $distance = (int) $routeInfo['distance'];
+        $duration = (int) ceil($routeInfo['duration'] / 60);
 
         $wktCoords = [];
         foreach ($coords as $coord) {
@@ -235,10 +240,13 @@ class Routes
         }
         $wkt = "LINESTRING(" . implode(", ", $wktCoords) . ")";
 
-        return [true, [
-            'wkt' => $wkt,
-            'distance' => $distance,
-            'duration' => $duration
-        ]];
+        return [
+            true,
+            [
+                'wkt' => $wkt,
+                'distance' => $distance,
+                'duration' => $duration
+            ]
+        ];
     }
 }
