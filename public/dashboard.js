@@ -16,20 +16,28 @@ setTimeout(function () {
 		if (mapInvalidateTimeout) return;
 		mapInvalidateTimeout = setTimeout(function () {
 			mapInvalidateTimeout = null;
-			map.invalidateSize();
+			if (map) {
+				map.invalidateSize();
+			}
 		}, 100);
 	}
 
-	window.addEventListener("resize", debouncedInvalidateSize);
-	window.addEventListener("orientationchange", debouncedInvalidateSize);
-
-	if (window.MutationObserver) {
-		new MutationObserver(function () {
+	if (window.ResizeObserver) {
+		new ResizeObserver(function () {
 			debouncedInvalidateSize();
-		}).observe(mapEl, {
-			attributes: true,
-			attributeFilter: ["style", "class"],
-		});
+		}).observe(mapEl);
+	} else {
+		window.addEventListener("resize", debouncedInvalidateSize);
+		window.addEventListener("orientationchange", debouncedInvalidateSize);
+
+		if (window.MutationObserver) {
+			new MutationObserver(function () {
+				debouncedInvalidateSize();
+			}).observe(mapEl, {
+				attributes: true,
+				attributeFilter: ["style", "class"],
+			});
+		}
 	}
 
 	var eventsLayer = L.layerGroup().addTo(map);

@@ -58,7 +58,7 @@ body.modal-open {
 	align-items: center;
 	position: sticky;
 	top: 0;
-	z-index: 1000;
+	z-index: 1200;
 	transition: background 0.4s ease;
 }
 
@@ -1079,5 +1079,19 @@ html[data-theme="dark"] .admin-tab {
 html[data-theme="dark"] .btn-actions-toggle {
 	background: var(--panel);
 	color: var(--ink);
+}
+
+html[data-theme="dark"] .btn-actions-toggle:hover {
+    background: var(--panel-border);
+    border-color: var(--panel-border);
+}
+
+html[data-theme="dark"] .actions-dropdown-content {
+    background-color: var(--panel);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
