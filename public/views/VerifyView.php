@@ -47,7 +47,7 @@
     <?php else: ?>
         <form>
             <h1>Email Verified</h1>
-            <p style="margin-bottom: 20px; color: #333; line-height: 1.5;">
+            <p class="form-text">
                 Your email has been verified successfully, <strong><?php echo htmlspecialchars($verifiedUsername ?? '', ENT_QUOTES, 'UTF-8'); ?></strong>.
                 You can now log in to your account.
             </p>

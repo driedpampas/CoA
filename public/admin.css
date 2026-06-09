@@ -1017,19 +1017,19 @@ textarea {
 }
 
 .theme-toggle .sun-icon {
-	display: block;
+	display: none;
 }
 
 .theme-toggle .moon-icon {
-	display: none;
+	display: block;
 }
 
 html[data-theme="dark"] .theme-toggle .sun-icon {
-	display: none;
+	display: block;
 }
 
 html[data-theme="dark"] .theme-toggle .moon-icon {
-	display: block;
+	display: none;
 }
 
 /* Dark mode inputs and panels adjustments in admin */

@@ -54,11 +54,11 @@
     <?php if ($isLoggedIn) { ?>
         <form action="login" method="post">
             <h1>Login successful</h1>
-            <p style="margin-bottom: 20px;">You are now logged in as
+            <p class="form-text">You are now logged in as
                 <strong><?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?></strong>.
             </p>
             <input type="hidden" name="action" value="logout">
-            <button type="submit" style="background-color: #e74c3c;">Logout</button>
+            <button type="submit" class="btn-danger">Logout</button>
         </form>
     <?php } else { ?>
         <form action="login" method="post">
@@ -68,7 +68,7 @@
 
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required autocomplete="current-password">
-            <p style="margin-top:-12px;margin-bottom:16px;font-size:13px;"><a href="forgot-password">Forgot password?</a></p>
+            <p class="forgot-password-link"><a href="forgot-password">Forgot password?</a></p>
 
             <input type="hidden" name="action" value="login">
             <button type="submit">Login</button>

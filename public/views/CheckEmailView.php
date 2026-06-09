@@ -43,10 +43,10 @@
 
     <form>
         <h1>Check Your Email</h1>
-        <p style="margin-bottom: 20px; color: #333; line-height: 1.5;">
+        <p class="form-text">
             <?php echo htmlspecialchars($successMessage ?: 'We sent a verification link to your email address. Please check your inbox and click the link to activate your account.', ENT_QUOTES, 'UTF-8'); ?>
         </p>
-        <p style="margin-bottom: 20px; color: #616a7e; font-size: 13px;">
+        <p class="form-text-muted">
             Didn't receive the email? Check your spam folder, or <a href="register">try registering again</a>.
         </p>
         <a href="login" class="btn-submit">Go to Login</a>

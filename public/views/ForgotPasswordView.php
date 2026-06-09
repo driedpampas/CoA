@@ -55,7 +55,7 @@
 
     <form action="forgot-password" method="post">
         <h1>Forgot Password</h1>
-        <p style="margin-bottom: 20px; color: #616a7e; font-size: 14px;">
+        <p class="form-text-muted">
             Enter your email address and we'll send you a link to reset your password.
         </p>
 

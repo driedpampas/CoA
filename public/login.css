@@ -1,3 +1,61 @@
+:root {
+	--bg: #f4f7f6;
+	--text-color: #050505;
+	--text-muted: #616a7e;
+	--h1-color: #2c3e50;
+	--form-bg: #ffffff;
+	--form-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	--label-color: #4a5568;
+	--input-bg: #ffffff;
+	--input-border: #cbd5e1;
+	--input-text: #050505;
+	--input-focus-border: #1a1a2e;
+	--input-focus-shadow: rgba(26, 26, 46, 0.2);
+	--link-color: #1a1a2e;
+	--link-hover-color: #24385d;
+	--btn-bg: #1a1a2e;
+	--btn-hover-bg: #24385d;
+	--btn-text: #ffffff;
+	--error-bg: #fdf2f2;
+	--error-text: #de350b;
+	--error-border: #f8b4b4;
+	--success-bg: #f3faf7;
+	--success-text: #00875a;
+	--success-border: #b3e6d5;
+	--toggle-color: #4a5568;
+	--toggle-hover-bg: rgba(0, 0, 0, 0.05);
+	--toggle-hover-color: #1a1a2e;
+}
+
+html[data-theme="dark"] {
+	--bg: #12121e;
+	--text-color: #e2e8f0;
+	--text-muted: #a0aec0;
+	--h1-color: #ffffff;
+	--form-bg: #1e1e2f;
+	--form-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+	--label-color: #a0aec0;
+	--input-bg: #2d3748;
+	--input-border: #4a5568;
+	--input-text: #ffffff;
+	--input-focus-border: #90cdf4;
+	--input-focus-shadow: rgba(144, 205, 244, 0.3);
+	--link-color: #90cdf4;
+	--link-hover-color: #ffffff;
+	--btn-bg: #2d3748;
+	--btn-hover-bg: #4a5568;
+	--btn-text: #ffffff;
+	--error-bg: #2d1a1a;
+	--error-text: #fc8181;
+	--error-border: #e53e3e;
+	--success-bg: #1a2e1a;
+	--success-text: #68d391;
+	--success-border: #38a169;
+	--toggle-color: #a0aec0;
+	--toggle-hover-bg: rgba(255, 255, 255, 0.1);
+	--toggle-hover-color: #ffffff;
+}
+
 /* Base */
 * {
 	box-sizing: border-box;
@@ -7,33 +65,36 @@
 }
 
 body {
-	background-color: #f4f7f6;
+	background-color: var(--bg);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
 	min-height: 100vh;
-	color: #050505;
+	color: var(--text-color);
 	padding: 60px 20px;
+	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
 	text-align: center;
 	margin-bottom: 24px;
-	color: #2c3e50;
+	color: var(--h1-color);
 	font-size: 30px;
+	transition: color 0.3s ease;
 }
 
 /* The form itself */
 form {
-	background: #ffffff;
+	background: var(--form-bg);
 	padding: 30px;
 	border-radius: 8px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+	box-shadow: var(--form-shadow);
 	width: 100%;
 	max-width: 400px;
 	margin-bottom: 20px;
 	order: 2;
+	transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Form Elements */
@@ -41,8 +102,9 @@ label {
 	display: block;
 	margin-bottom: 8px;
 	font-weight: 600;
-	color: #4a5568;
+	color: var(--label-color);
 	font-size: 14px;
+	transition: color 0.3s ease;
 }
 
 input[type="text"],
@@ -51,20 +113,24 @@ input[type="email"] {
 	width: 100%;
 	padding: 12px;
 	margin-bottom: 20px;
-	border: 1px solid #cbd5e1;
+	border: 1px solid var(--input-border);
+	background-color: var(--input-bg);
+	color: var(--input-text);
 	border-radius: 6px;
 	font-size: 15px;
 	transition:
 		border-color 0.3s ease,
-		box-shadow 0.3s ease;
+		box-shadow 0.3s ease,
+		background-color 0.3s ease,
+		color 0.3s ease;
 }
 
 input[type="text"]:focus,
 input[type="password"]:focus,
 input[type="email"]:focus {
 	outline: none;
-	border-color: #1a1a2e;
-	box-shadow: 0 0 0 2px rgb(34 28 81);
+	border-color: var(--input-focus-border);
+	box-shadow: 0 0 0 2px var(--input-focus-shadow);
 }
 
 /* Buttons */
@@ -72,15 +138,15 @@ button[type="submit"],
 .btn-submit {
 	display: block;
 	width: 100%;
-	background-color: #1a1a2e;
-	color: white;
+	background-color: var(--btn-bg);
+	color: var(--btn-text);
 	border: none;
 	padding: 12px;
 	font-size: 16px;
 	font-weight: 600;
 	border-radius: 6px;
 	cursor: pointer;
-	transition: background-color 0.2s ease;
+	transition: background-color 0.2s ease, color 0.2s ease;
 	margin-top: 10px;
 	text-align: center;
 	text-decoration: none;
@@ -89,32 +155,81 @@ button[type="submit"],
 
 button[type="submit"]:hover,
 .btn-submit:hover {
-	background-color: #24385d;
+	background-color: var(--btn-hover-bg);
 }
 
-/* Links */
+.btn-danger {
+	background-color: #e74c3c !important;
+	color: #ffffff !important;
+}
+
+.btn-danger:hover {
+	background-color: #c0392b !important;
+}
+
+/* Links & Paragraphs */
 p {
 	text-align: center;
 	font-size: 14px;
-	color: #616a7e;
+	color: var(--text-muted);
 	order: 3;
+	transition: color 0.3s ease;
 }
 
 p a {
-	color: #1a1a2e;
+	color: var(--link-color);
 	text-decoration: none;
 	font-weight: 600;
+	transition: color 0.2s ease;
 }
 
 p a:hover {
+	color: var(--link-hover-color);
+	text-decoration: underline;
+}
+
+.forgot-password-link {
+	margin-top: -12px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	text-align: left;
+}
+
+.form-text {
+	margin-bottom: 20px;
+	color: var(--text-color);
+	line-height: 1.5;
+	font-size: 14px;
+	text-align: center;
+}
+
+.form-text-muted {
+	margin-bottom: 20px;
+	color: var(--text-muted);
+	font-size: 13px;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.form-text a,
+.form-text-muted a {
+	color: var(--link-color);
+	text-decoration: none;
+	font-weight: 600;
+	transition: color 0.2s ease;
+}
+
+.form-text a:hover,
+.form-text-muted a:hover {
+	color: var(--link-hover-color);
 	text-decoration: underline;
 }
 
 /* Errors and Feedback */
 .error-message {
-	background-color: #f6f6f6;
-	color: #da1111;
-	border: 1px solid #c68787;
+	background-color: var(--error-bg);
+	color: var(--error-text);
+	border: 1px solid var(--error-border);
 	padding: 12px;
 	border-radius: 6px;
 	width: 100%;
@@ -124,10 +239,11 @@ p a:hover {
 	text-align: center;
 	font-size: 14px;
 	order: 1;
+	transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 #usernameFeedback {
-	color: #da1111;
+	color: var(--error-text);
 	font-size: 0.9em;
 	margin-top: -12px;
 	margin-bottom: 12px;
@@ -135,9 +251,9 @@ p a:hover {
 }
 
 .success-message {
-	background-color: #f0fff0;
-	color: #1a7a1a;
-	border: 1px solid #87c687;
+	background-color: var(--success-bg);
+	color: var(--success-text);
+	border: 1px solid var(--success-border);
 	padding: 12px;
 	border-radius: 6px;
 	width: 100%;
@@ -146,80 +262,38 @@ p a:hover {
 	text-align: center;
 	font-size: 14px;
 	order: 1;
+	transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Nav */
 .page-nav {
 	width: 100%;
 	max-width: 400px;
-	text-align: left;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 	margin-bottom: 16px;
 	order: 0;
 }
 
 .page-nav a {
-	color: #1a1a2e;
+	color: var(--link-color);
 	text-decoration: none;
 	font-size: 14px;
 	font-weight: 600;
+	transition: color 0.2s ease;
 }
 
 .page-nav a:hover {
+	color: var(--link-hover-color);
 	text-decoration: underline;
-}
-
-html[data-theme="dark"] body {
-	background-color: #12121e;
-	color: #e2e8f0;
-}
-
-html[data-theme="dark"] h1 {
-	color: #fff;
-}
-
-html[data-theme="dark"] form {
-	background: #1e1e2f;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-}
-
-html[data-theme="dark"] label {
-	color: #a0aec0;
-}
-
-html[data-theme="dark"] input[type="text"],
-html[data-theme="dark"] input[type="password"],
-html[data-theme="dark"] input[type="email"] {
-	background-color: #2d3748;
-	border-color: #4a5568;
-	color: #fff;
-}
-
-html[data-theme="dark"] p {
-	color: #a0aec0;
-}
-
-html[data-theme="dark"] p a,
-html[data-theme="dark"] .page-nav a {
-	color: #90cdf4;
-}
-
-html[data-theme="dark"] .error-message {
-	background-color: #2d1a1a;
-	color: #fc8181;
-	border-color: #e53e3e;
-}
-
-html[data-theme="dark"] .success-message {
-	background-color: #1a2e1a;
-	color: #68d391;
-	border-color: #38a169;
 }
 
 /* Theme Toggle Button for Login/Register pages */
 .theme-toggle {
 	background: none;
 	border: none;
-	color: #4a5568;
+	color: var(--toggle-color);
 	cursor: pointer;
 	padding: 0.35rem;
 	border-radius: 4px;
@@ -227,36 +301,25 @@ html[data-theme="dark"] .success-message {
 	align-items: center;
 	justify-content: center;
 	transition: color 0.2s ease, background-color 0.2s ease;
-	float: right;
 }
 
 .theme-toggle:hover {
-	color: #1a1a2e;
-	background: rgba(0, 0, 0, 0.05);
-}
-
-html[data-theme="dark"] .theme-toggle {
-	color: #a0aec0;
-}
-
-html[data-theme="dark"] .theme-toggle:hover {
-	color: #fff;
-	background: rgba(255, 255, 255, 0.1);
+	color: var(--toggle-hover-color);
+	background: var(--toggle-hover-bg);
 }
 
 .theme-toggle .sun-icon {
-	display: block;
+	display: none;
 }
 
 .theme-toggle .moon-icon {
-	display: none;
-}
-
-html[data-theme="dark"] .theme-toggle .sun-icon {
-	display: none;
-}
-
-html[data-theme="dark"] .theme-toggle .moon-icon {
 	display: block;
 }
 
+html[data-theme="dark"] .theme-toggle .sun-icon {
+	display: block;
+}
+
+html[data-theme="dark"] .theme-toggle .moon-icon {
+	display: none;
+}

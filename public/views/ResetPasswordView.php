@@ -54,7 +54,7 @@
 
         <form action="reset-password" method="post">
             <h1>Reset Password</h1>
-            <p style="margin-bottom: 20px; color: #616a7e; font-size: 14px;">
+            <p class="form-text-muted">
                 Enter your new password below.
             </p>
 
