@@ -1,8 +1,8 @@
 <?php
 
-namespace Models;
+namespace ClientModels;
 
-class Event
+class EvacuationRoute
 {
     private $client;
 
@@ -11,15 +11,9 @@ class Event
         $this->client = new HttpClient($apiBaseUrl);
     }
 
-    public function getActive()
+    public function findNearestRoute($latitude, $longitude, $limit = 3)
     {
-        [$ok, $res] = $this->client->request('GET', 'events');
-        return [$ok, $res];
-    }
-
-    public function getRecentForMap($days = 1)
-    {
-        [$ok, $res] = $this->client->request('GET', 'events?days=' . urlencode($days));
+        [$ok, $res] = $this->client->request('GET', 'routes/nearest?lat=' . urlencode($latitude) . '&lng=' . urlencode($longitude) . '&limit=' . urlencode($limit));
         return [$ok, $res];
     }
 
@@ -32,7 +26,7 @@ class Event
             'sort' => $sort,
             'dir' => $sortDir
         ]);
-        [$ok, $res] = $this->client->request('GET', 'events?' . $params);
+        [$ok, $res] = $this->client->request('GET', 'routes?' . $params);
         if ($ok && isset($res['rows'])) {
             return [true, $res];
         }
@@ -41,16 +35,16 @@ class Event
 
     public function create(array $data)
     {
-        return $this->client->request('POST', 'events', $data);
+        return $this->client->request('POST', 'routes', $data);
     }
 
     public function update($id, array $data)
     {
-        return $this->client->request('PATCH', 'events/' . (int) $id, $data);
+        return $this->client->request('PATCH', 'routes/' . (int) $id, $data);
     }
 
     public function delete($id)
     {
-        return $this->client->request('DELETE', 'events/' . (int) $id);
+        return $this->client->request('DELETE', 'routes/' . (int) $id);
     }
 }

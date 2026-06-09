@@ -8,7 +8,7 @@ $route = $routeRoot;
 switch ($routeRoot) {
     case 'dashboard':
     case 'profile':
-        require __DIR__ . '/controllers/PublicController.php';
+        require __DIR__ . '/../client/controllers/PublicController.php';
         break;
 
     case 'api':
@@ -26,7 +26,7 @@ switch ($routeRoot) {
     case 'check-email':
     case 'forgot-password':
     case 'reset-password':
-        require __DIR__ . '/controllers/AccountsController.php';
+        require __DIR__ . '/../client/controllers/AccountsController.php';
         break;
 
     default:

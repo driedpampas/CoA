@@ -9,6 +9,7 @@
 	"autoload": {
 		"psr-4": {
 			"Models\\": "api/models/",
+			"ClientModels\\": "client/models/",
 			"Handlers\\": "api/handlers/"
 		}
 	}

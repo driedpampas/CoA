@@ -1,8 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../../public/models/HttpClient.php';
-require_once __DIR__ . '/../../public/models/Event.php';
-
 class AdminEventController
 {
     public static function create(): void
@@ -96,10 +93,10 @@ class AdminEventController
         echo json_encode($ok ? ['success' => true] : ['error' => 'Deletion failure: ' . $res]);
     }
 
-    private static function model(): \Models\Event
+    private static function model(): \ClientModels\Event
     {
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        return new \Models\Event($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
+        return new \ClientModels\Event($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
     }
 
     private static function respond(array $payload, int $status, string $entity, bool $success = false): void

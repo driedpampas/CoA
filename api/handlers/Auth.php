@@ -120,11 +120,11 @@ class Auth
         $password = $input['password'];
         $email = trim(filter_var($input['email'], FILTER_SANITIZE_EMAIL));
 
-        if (mb_strlen($username) < 3 || mb_strlen($username) > 30) {
+        if (strlen($username) < 3 || strlen($username) > 30) {
             \sendJsonResponse(['error' => 'Username must be between 3 and 30 characters.'], 400);
         }
 
-        if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
+        if (strlen($password) < 3 || strlen($password) > 30) {
             \sendJsonResponse(['error' => 'Password must be between 3 and 30 characters.'], 400);
         }
 

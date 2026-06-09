@@ -5,13 +5,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-require_once __DIR__ . '/../models/HttpClient.php';
-require_once __DIR__ . '/../models/Account.php';
-
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
 
-$userModel = new \Models\Account($apiBaseUrl);
+$userModel = new \ClientModels\Account($apiBaseUrl);
 
 $isLoggedIn = false;
 $username = "";
@@ -120,7 +117,7 @@ function handleResetPassword()
         exit;
     }
 
-    if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
+    if (strlen($password) < 3 || strlen($password) > 30) {
         $_SESSION["errorMessage"] = "Password must be between 3 and 30 characters.";
         header("Location: reset-password?token=" . urlencode($token) . "&error=1");
         exit;
@@ -213,13 +210,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $password = $_POST["password"];
             $email = trim(filter_var($_POST["email"], FILTER_SANITIZE_EMAIL));
 
-            if (mb_strlen($username) < 3 || mb_strlen($username) > 30) {
+            if (strlen($username) < 3 || strlen($username) > 30) {
                 $_SESSION["errorMessage"] = "Username must be between 3 and 30 characters.";
                 header("Location: register?error=1");
                 exit;
             }
 
-            if (mb_strlen($password) < 3 || mb_strlen($password) > 30) {
+            if (strlen($password) < 3 || strlen($password) > 30) {
                 $_SESSION["errorMessage"] = "Password must be between 3 and 30 characters.";
                 header("Location: register?error=1");
                 exit;

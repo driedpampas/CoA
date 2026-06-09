@@ -36,7 +36,7 @@ class Email
     {
         extract($vars);
         ob_start();
-        include __DIR__ . '/../../public/views/emails/' . $view;
+        include __DIR__ . '/../../client/views/emails/' . $view;
         return ob_get_clean();
     }
 

@@ -1,8 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../../public/models/HttpClient.php';
-require_once __DIR__ . '/../../public/models/Shelter.php';
-
 class AdminShelterController
 {
     public static function create(): void
@@ -97,10 +94,10 @@ class AdminShelterController
         echo json_encode($ok ? ['success' => true] : ['error' => 'Deletion failure: ' . $res]);
     }
 
-    private static function model(): \Models\Shelter
+    private static function model(): \ClientModels\Shelter
     {
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        return new \Models\Shelter($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
+        return new \ClientModels\Shelter($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
     }
 
     private static function respond(array $payload, int $status, bool $isError): void

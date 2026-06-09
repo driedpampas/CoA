@@ -694,6 +694,78 @@ setTimeout(function () {
 		return true;
 	}
 
+	function escapeHtml(str) {
+		if (typeof str !== "string") {
+			return str === null || str === undefined ? "" : String(str);
+		}
+		return str
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
+	}
+
+	function renderEventsList(events) {
+		var panel = document.querySelector("#panel-events");
+		if (!panel) return;
+
+		var filteredEvents = events;
+		if (profileRadius !== null && profileRadius > 0 && userLat !== null && userLng !== null) {
+			filteredEvents = events.filter((event) => {
+				if (!event.latitude || !event.longitude) return false;
+				var dist = haversineDistance(userLat, userLng, parseFloat(event.latitude), parseFloat(event.longitude));
+				return dist <= profileRadius;
+			});
+		}
+
+		var h2 = panel.querySelector("h2");
+		panel.innerHTML = "";
+		if (h2) {
+			panel.appendChild(h2);
+		} else {
+			var newH2 = document.createElement("h2");
+			newH2.textContent = "Active Events";
+			panel.appendChild(newH2);
+		}
+
+		if (!filteredEvents || filteredEvents.length === 0) {
+			var p = document.createElement("p");
+			p.className = "empty-state";
+			p.textContent = "No active emergencies.";
+			panel.appendChild(p);
+			return;
+		}
+
+		var ul = document.createElement("ul");
+		ul.className = "event-list";
+
+		filteredEvents.forEach((event) => {
+			var li = document.createElement("li");
+			li.className = `event-item severity-${escapeHtml(event.severity || "moderate")}`;
+			li.setAttribute("data-lat", event.latitude || "");
+			li.setAttribute("data-lng", event.longitude || "");
+
+			var desc = event.description || "";
+			var truncatedDesc = desc.length > 100 ? desc.substring(0, 100) + "..." : desc;
+
+			li.innerHTML = `
+				<strong>${escapeHtml(event.title || "")}</strong>
+				<span class="badge badge-${escapeHtml(event.event_type || "other")}">
+					${escapeHtml(event.event_type || "other")}
+				</span>
+				<span class="badge badge-severity-${escapeHtml(event.severity || "moderate")}">
+					${escapeHtml(event.severity || "moderate")}
+				</span>
+				<small>${escapeHtml(event.started_at || "")}</small>
+				<p>${escapeHtml(truncatedDesc)}</p>
+			`;
+			ul.appendChild(li);
+		});
+
+		panel.appendChild(ul);
+	}
+
 	function pollEvents() {
 		fetch("api/events")
 			.then((r) => r.json())
@@ -701,6 +773,7 @@ setTimeout(function () {
 				var changed = !areEventListsEqual(eventsData, data);
 				if (changed) {
 					eventsData = data;
+					renderEventsList(eventsData);
 					fetchMapEvents();
 					syncLiveNotificationsFromEvents();
 					checkEventProximity();
@@ -715,6 +788,7 @@ setTimeout(function () {
 		userLat = lat;
 		userLng = lng;
 		updateUserMarker(lat, lng, 50);
+		renderEventsList(eventsData);
 		fetchNearestShelters(lat, lng);
 		fetchNearestRoutes(lat, lng);
 		syncLiveNotificationsFromEvents();

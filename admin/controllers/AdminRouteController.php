@@ -1,8 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../../public/models/HttpClient.php';
-require_once __DIR__ . '/../../public/models/EvacuationRoute.php';
-
 class AdminRouteController
 {
     public static function create(): void
@@ -93,10 +90,10 @@ class AdminRouteController
         echo json_encode($ok ? ['success' => true] : ['error' => 'Deletion failure: ' . $res]);
     }
 
-    private static function model(): \Models\EvacuationRoute
+    private static function model(): \ClientModels\EvacuationRoute
     {
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        return new \Models\EvacuationRoute($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
+        return new \ClientModels\EvacuationRoute($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
     }
 
     private static function respond(array $payload, int $status, bool $isError): void

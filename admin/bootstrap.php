@@ -18,10 +18,8 @@ class Bootstrap
         // Lazy role backfill for sessions created before role was stored
         if (!isset($_SESSION['role'])) {
             try {
-                require_once __DIR__ . '/../public/models/HttpClient.php';
-                require_once __DIR__ . '/../public/models/Account.php';
                 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                $userModel = new \Models\Account($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
+                $userModel = new \ClientModels\Account($protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api');
                 $_SESSION['role'] = $userModel->getRole($_SESSION['username'] ?? '') ?? 'user';
             } catch (\Throwable $e) {
                 $_SESSION['role'] = 'user';

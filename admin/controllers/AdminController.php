@@ -1,10 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../../public/models/HttpClient.php';
-require_once __DIR__ . '/../../public/models/Event.php';
-require_once __DIR__ . '/../../public/models/Shelter.php';
-require_once __DIR__ . '/../../public/models/EvacuationRoute.php';
-
 class AdminController
 {
     public static array $queryBase = [];
@@ -14,9 +9,9 @@ class AdminController
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $apiBaseUrl = $protocol . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/api';
 
-        $eventModel   = new \Models\Event($apiBaseUrl);
-        $shelterModel = new \Models\Shelter($apiBaseUrl);
-        $routeModel   = new \Models\EvacuationRoute($apiBaseUrl);
+        $eventModel   = new \ClientModels\Event($apiBaseUrl);
+        $shelterModel = new \ClientModels\Shelter($apiBaseUrl);
+        $routeModel   = new \ClientModels\EvacuationRoute($apiBaseUrl);
 
         $csrf     = htmlspecialchars((string) ($_SESSION['csrf_token'] ?? ''), ENT_QUOTES, 'UTF-8');
         $username = htmlspecialchars((string) ($_SESSION['username'] ?? ''), ENT_QUOTES, 'UTF-8');
